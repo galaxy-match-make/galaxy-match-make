@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "galaxy-match-make", "galaxy-match-make.csproj", "{ECD8AC68-4588-A034-E7F9-61B78548CDC1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ECD8AC68-4588-A034-E7F9-61B78548CDC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECD8AC68-4588-A034-E7F9-61B78548CDC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECD8AC68-4588-A034-E7F9-61B78548CDC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECD8AC68-4588-A034-E7F9-61B78548CDC1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E1E873F5-06F0-405D-BC93-25C01678E8AB}
+	EndGlobalSection
+EndGlobal
