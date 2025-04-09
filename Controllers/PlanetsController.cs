@@ -1,5 +1,5 @@
 using galaxy_match_make.Models;
-using galaxy_match_make.Repositories;
+using galaxy_match_make.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace galaxy_match_make.Controllers
@@ -8,13 +8,13 @@ namespace galaxy_match_make.Controllers
     [ApiController]
     public class PlanetsController : ControllerBase
     {
-        private readonly IPlanetRepository _repository;
-        public PlanetsController(IPlanetRepository repository) => _repository = repository;
+        private readonly IPlanetService _planetService;
+        public PlanetsController(IPlanetService service) => _planetService = service;
 
         [HttpGet]
         public async Task<ActionResult<PlanetDto>> GetAllSchools()
         {
-            var planets = await _repository.GetAllPlanetsAsync();
+            var planets = await _planetService.GetAllPlanetsAsync();
             return Ok(planets);
         }
     }
