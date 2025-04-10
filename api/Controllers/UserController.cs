@@ -1,8 +1,6 @@
 ﻿using galaxy_match_make.Models;
 using galaxy_match_make.Repositories;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using NuGet.Protocol.Core.Types;
 
 namespace galaxy_match_make.Controllers
 {

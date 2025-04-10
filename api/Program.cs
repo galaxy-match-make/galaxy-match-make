@@ -13,6 +13,7 @@ builder.Services.AddSingleton<DapperContext>();
 builder.Services.AddScoped<IPlanetRepository, PlanetRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
+
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
 
