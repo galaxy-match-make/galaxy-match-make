@@ -20,7 +20,6 @@ namespace GalaxyMatchGUI.Services
             if (_mainWindow is null)
                 throw new InvalidOperationException("NavigationService is not initialized.");
 
-            // Ensure we're on the UI thread
             if (Dispatcher.UIThread.CheckAccess())
             {
                 _mainWindow.Content = newView;
@@ -36,7 +35,6 @@ namespace GalaxyMatchGUI.Services
 
         public void NavigateToWindow(Window newWindow)
         {
-            // Ensure we're on the UI thread
             if (Dispatcher.UIThread.CheckAccess())
             {
                 PerformWindowNavigation(newWindow);

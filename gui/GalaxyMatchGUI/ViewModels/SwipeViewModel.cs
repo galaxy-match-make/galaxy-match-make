@@ -84,7 +84,7 @@ namespace GalaxyMatchGUI.ViewModels
         }
 
 
-        // Sample data method - in a real app, you'd fetch from a service
+        // Sample data method - we need to fetch from a service
         private void LoadSampleData()
         {
             _potentialMatches = new List<Profile>

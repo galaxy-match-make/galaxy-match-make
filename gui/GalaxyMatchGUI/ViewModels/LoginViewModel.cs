@@ -29,10 +29,8 @@ namespace GalaxyMatchGUI.ViewModels
             set => SetProperty(ref _statusMessage, value);
         }
 
-        // Command for Google Sign In
         public ReactiveCommand<Unit, Unit> GoogleSignInCommand { get; }
 
-        // Method that will be executed when the command is triggered
         private async Task SignInWithGoogleAsync()
         {
             try

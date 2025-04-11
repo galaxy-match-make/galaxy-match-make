@@ -10,7 +10,6 @@ namespace GalaxyMatchGUI
 {
     public partial class App : Application
     {
-        // Add static NavigationService property for app-wide access
         public static NavigationService NavigationService { get; } = new NavigationService();
 
         public override void Initialize()
