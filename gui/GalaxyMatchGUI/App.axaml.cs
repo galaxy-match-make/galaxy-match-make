@@ -4,11 +4,15 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using GalaxyMatchGUI.ViewModels;
+using GalaxyMatchGUI.Services;
 
 namespace GalaxyMatchGUI
 {
     public partial class App : Application
     {
+        // Add static NavigationService property for app-wide access
+        public static NavigationService NavigationService { get; } = new NavigationService();
+
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -20,12 +24,12 @@ namespace GalaxyMatchGUI
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
-                // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
                 DisableAvaloniaDataAnnotationValidation();
-                desktop.MainWindow = new LoginView();
-                {
-                    DataContext = new LoginViewModel();
-                };
+                
+                // Create the main window (LoginView) and initialize the NavigationService with it
+                var mainWindow = new LoginView();
+                NavigationService.Initialize(mainWindow);
+                desktop.MainWindow = mainWindow;
             }
 
             base.OnFrameworkInitializationCompleted();

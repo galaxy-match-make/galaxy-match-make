@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
+using System;
+using GalaxyMatchGUI.Services;
 
 namespace GalaxyMatchGUI.ViewModels
 {
@@ -44,7 +46,12 @@ namespace GalaxyMatchGUI.ViewModels
                 // Simulate login success
                 StatusMessage = "Login successful! Navigating through the wormhole...";
 
+                // Add a small delay to show the success message before navigating
+                await Task.Delay(1000);
                 
+                // Navigate to the SwipeView using window-based navigation
+                var swipeView = new SwipeView();
+                App.NavigationService.NavigateToWindow(swipeView);
             }
             catch (System.Exception ex)
             {

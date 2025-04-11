@@ -1,6 +1,7 @@
 ﻿using ReactiveUI;
 using System.Collections.Generic;
 using System.Reactive;
+using GalaxyMatchGUI.Services;
 
 namespace GalaxyMatchGUI.ViewModels
 {
@@ -59,6 +60,7 @@ namespace GalaxyMatchGUI.ViewModels
         private void ViewProfile()
         {
             // Logic to navigate to user's own profile page
+            // This is a placeholder for future functionality
         }
 
         private void ViewMessages()
