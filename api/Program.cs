@@ -1,8 +1,23 @@
 using galaxy_match_make.Data;
 using galaxy_match_make.Repositories;
 using galaxy_match_make.Services;
+using galaxy_match_make.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+//Add SignalR for realtime messaging
+builder.Services.AddSignalR();
 
 // Add services to the container.
 
@@ -42,9 +57,12 @@ app.UseHttpsRedirection();
 
 app.UseMiddleware<MiddlewareService>();
 
-
+app.UseCors();
 app.UseAuthorization();
 
 app.MapControllers();
+
+//SignalR
+app.MapHub<Chathub>("/chathub");
 
 app.Run();
