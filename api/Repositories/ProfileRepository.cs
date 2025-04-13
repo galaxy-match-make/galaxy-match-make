@@ -37,6 +37,106 @@ public class ProfileRepository : IProfileRepository
         return profile.FirstOrDefault();
     }
 
+    public async Task<ProfileDto> UpdateProfile(Guid id, UpdateProfileDto profile)
+    {
+        var sql = GetUpsertProfileSql(true);
+
+        using var connection = GetConnection();
+        await connection.OpenAsync(); 
+        using var transaction = await connection.BeginTransactionAsync();
+
+        try
+        {
+            var updatedProfileId = await connection.ExecuteScalarAsync<int>(sql, new
+            {
+                UserId = id,
+                DisplayName = profile.DisplayName,
+                Bio = profile.Bio,
+                AvatarUrl = profile.AvatarUrl,
+                SpeciesId = profile.SpeciesId,
+                PlanetId = profile.PlanetId,
+                GenderId = profile.GenderId,
+                HeightInGalacticInches = profile.HeightInGalacticInches,
+                GalacticDateOfBirth = profile.GalacticDateOfBirth
+            }, transaction);
+
+            var deleteInterestsSql = "DELETE FROM user_interests WHERE user_id = @UserId;";
+            await connection.ExecuteAsync(deleteInterestsSql, new { UserId = id }, transaction);
+
+            if (profile.UserInterestIds != null && profile.UserInterestIds.Any())
+            {
+                var insertInterestsSql = @"
+                    INSERT INTO user_interests (user_id, interest_id)
+                    VALUES (@UserId, @InterestId);";
+
+                foreach (var interestId in profile.UserInterestIds)
+                {
+                    await connection.ExecuteAsync(insertInterestsSql, new
+                    {
+                        UserId = id,
+                        InterestId = interestId
+                    }, transaction);
+                }
+            }
+
+            await transaction.CommitAsync();
+            return await GetProfileById(id); 
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task<ProfileDto> CreateProfile(CreateProfileDto profile)
+    {
+        var sql = GetUpsertProfileSql(false);
+
+        using var connection = GetConnection();
+        await connection.OpenAsync(); 
+        using var transaction = await connection.BeginTransactionAsync(); 
+
+        try
+        {
+            var profileId = await connection.ExecuteScalarAsync<int>(sql, new
+            {
+                UserId = profile.UserId,
+                DisplayName = profile.DisplayName,
+                Bio = profile.Bio,
+                AvatarUrl = profile.AvatarUrl,
+                SpeciesId = profile.SpeciesId,
+                PlanetId = profile.PlanetId,
+                GenderId = profile.GenderId,
+                HeightInGalacticInches = profile.HeightInGalacticInches,
+                GalacticDateOfBirth = profile.GalacticDateOfBirth
+            }, transaction);
+
+            if (profile.UserInterestIds != null && profile.UserInterestIds.Any())
+            {
+                var insertInterestsSql = @"
+                    INSERT INTO user_interests (user_id, interest_id)
+                    VALUES (@UserId, @InterestId);";
+
+                foreach (var interestId in profile.UserInterestIds)
+                {
+                    await connection.ExecuteAsync(insertInterestsSql, new
+                    {
+                        UserId = profile.UserId,
+                        InterestId = interestId
+                    }, transaction);
+                }
+            }
+
+            await transaction.CommitAsync();
+            return await GetProfileById(profile.UserId);
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
 
     private async Task<IEnumerable<ProfileDto>> QueryProfiles(string sql, object? parameters = null)
     {
@@ -113,8 +213,26 @@ public class ProfileRepository : IProfileRepository
         if (withWhereClause) sql += " WHERE p.user_id=@Id;";
 
         return sql;
-
-
     }
 
+    public string GetUpsertProfileSql(bool isUpdate)
+    {
+        return isUpdate ? @"
+            UPDATE profiles 
+            SET display_name = @DisplayName, 
+                bio = @Bio, 
+                avatar_url = @AvatarUrl, 
+                species_id = @SpeciesId, 
+                planet_id = @PlanetId, 
+                gender_id = @GenderId, 
+                height_in_galactic_inches = @HeightInGalacticInches, 
+                galactic_date_of_birth = @GalacticDateOfBirth
+            WHERE user_id = @UserId
+            RETURNING id;" : @"
+            INSERT INTO profiles 
+            (user_id, display_name, bio, avatar_url, species_id, planet_id, gender_id, height_in_galactic_inches, galactic_date_of_birth)
+            VALUES 
+            (@UserId, @DisplayName, @Bio, @AvatarUrl, @SpeciesId, @PlanetId, @GenderId, @HeightInGalacticInches, @GalacticDateOfBirth)
+            RETURNING id;";
+    }
 }

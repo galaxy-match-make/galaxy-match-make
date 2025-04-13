@@ -2,6 +2,7 @@
 using galaxy_match_make.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace galaxy_match_make.Controllers
 {
@@ -29,6 +30,37 @@ namespace galaxy_match_make.Controllers
                 return NotFound("This profile does not exist");
             }
             return Ok(Profile);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<ProfileDto>> UpdateProfile(Guid id, [FromBody] UpdateProfileDto profile)
+        {
+            if (profile == null)
+            {
+                return BadRequest("Profile data is required.");
+            }
+
+            var updatedProfile = await _profileRepository.UpdateProfile(id, profile);
+            return Ok(updatedProfile);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<ProfileDto>> CreateProfile([FromBody] CreateProfileDto profile)
+        {
+            if (profile == null)
+            {
+                return BadRequest("Profile data is required.");
+            }
+
+            try
+            {
+                var createdProfile = await _profileRepository.CreateProfile(profile);
+                return CreatedAtAction(nameof(GetProfileById), new { id = profile.UserId }, createdProfile);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Error creating profile: {ex.Message}");
+            }
         }
     }
 }

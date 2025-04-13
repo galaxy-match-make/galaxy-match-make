@@ -18,4 +18,31 @@
         public List<UserInterestsDto> UserInterests { get; set; } = new List<UserInterestsDto>();
 
     }
+
+    public class UpdateProfileDto
+    {
+        public string DisplayName { get; set; } = null!;
+        public string? Bio { get; set; }
+        public string? AvatarUrl { get; set; }
+        public float? HeightInGalacticInches { get; set; }
+        public int? GalacticDateOfBirth { get; set; }
+        public int? SpeciesId { get; set; }
+        public int? PlanetId { get; set; }
+        public int? GenderId { get; set; }
+        public List<int>? UserInterestIds { get; set; }
+    }
+
+    public class CreateProfileDto
+    {
+        public Guid UserId { get; set; }
+        public string DisplayName { get; set; } = null!;
+        public string? Bio { get; set; }
+        public string? AvatarUrl { get; set; }
+        public float? HeightInGalacticInches { get; set; }
+        public int? GalacticDateOfBirth { get; set; }
+        public int? SpeciesId { get; set; }
+        public int? PlanetId { get; set; }
+        public int? GenderId { get; set; }
+        public List<int>? UserInterestIds { get; set; }
+    }
 }
