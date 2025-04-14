@@ -1,0 +1,94 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:GalaxyMatchGUI.ViewModels"
+             x:Class="GalaxyMatchGUI.Views.ChatView"
+             x:DataType="vm:ChatViewModel"
+             Background="#0D0221">
+
+	<Grid Margin="10">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" MinHeight="50"/>
+			<RowDefinition Height="*" />
+			<RowDefinition Height="Auto" MinHeight="70"/>
+		</Grid.RowDefinitions>
+
+		<!-- Username Input Section -->
+		<Border Grid.Row="0" Background="#291C5A" CornerRadius="8" Padding="10">
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+				<TextBox x:Name="CurrentUserTextBox"
+                         Width="150"
+                         VerticalAlignment="Center"
+                         FontSize="16"
+                         Foreground="Black"
+                         Background="#3A2A6B"
+						 Text="{Binding Username}"
+                         Watermark="Your Name"/>
+
+				<TextBox x:Name="TargetUserTextBox"
+                         Width="150"
+                         VerticalAlignment="Center"
+                         FontSize="16"
+                         Foreground="Black"
+                         Background="#3A2A6B"
+						 Text="{Binding TargetUsername}"
+                         Watermark="Target User"/>
+
+				<Button  Content="Connect"
+                        Command="{Binding ConnectCommand}"
+                        Width="100"
+                        FontSize="16"
+						
+                        Foreground="White"
+                        Background="#6D4DFF"
+                        Padding="5,2"/>
+			</StackPanel>
+		</Border>
+
+		<!-- Message Display -->
+		<ListBox x:Name="MessagesListBox"
+                 Grid.Row="1"
+                 ItemsSource="{Binding Messages}"
+                 Margin="0,10"
+                 Background="#1E1249"
+                  Foreground="Black"
+                 FontSize="15"
+                 BorderBrush="#6D4DFF"
+                 BorderThickness="1"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+			<ListBox.ItemTemplate>
+				<DataTemplate>
+					<TextBlock Text="{Binding}"
+                               FontSize="15"
+                               Padding="10"
+                               Foreground="White"
+                               TextWrapping="Wrap"/>
+				</DataTemplate>
+			</ListBox.ItemTemplate>
+		</ListBox>
+
+		<!-- Message Input -->
+		<Border Grid.Row="2" Background="#291C5A" CornerRadius="8" Padding="10">
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+				<TextBox x:Name="MessageTextBox"
+                         Width="400"
+                         FontSize="16"
+                         Height="40"
+                          Foreground="Black"
+                         Background="#3A2A6B"
+						 Text="{Binding CurrentMessage}"
+                         Watermark="Type your message..."/>
+
+				<Button  Content="Send"
+                        Command="{Binding SendMessageCommand}"
+                        Width="100"
+                        FontSize="16"
+						
+                        Foreground="White"
+                        Background="#6D4DFF"
+                        Padding="5,2"/>
+
+			
+			</StackPanel>
+		</Border>
+	</Grid>
+</UserControl>

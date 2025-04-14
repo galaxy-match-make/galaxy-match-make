@@ -50,15 +50,24 @@ public partial class App : Application
             // Register views with navigation service
             navigationService.RegisterView<LoginViewModel, LoginView>();
             navigationService.RegisterView<MatchingViewModel, MatchingView>();
-            
+            // Inside OnFrameworkInitializationCompleted()
+            navigationService.RegisterView<ChatViewModel, ChatView>();
+
             // Register navigation service in DI container
             services.AddSingleton<INavigationService>(navigationService);
-            
+
+            // Register DialogService
+            //services.AddSingleton<IDialogService>(provider =>
+            //    new DialogService(desktop.MainWindow));
+
+            // Register SignalRClientService
+          //  services.AddSingleton<SignalRClientService>();
+
             // Build service provider after navigation service is registered
             ServiceProvider = services.BuildServiceProvider();
             
             // Navigate to login view
-            navigationService.NavigateTo<LoginViewModel>();
+            navigationService.NavigateTo<ChatViewModel>();
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -70,6 +79,7 @@ public partial class App : Application
         services.AddTransient<LoginViewModel>();
         services.AddTransient<MainWindowViewModel>();
         services.AddTransient<MatchingViewModel>();
+        services.AddTransient<ChatViewModel>();
         
         // Register other services here
     }
