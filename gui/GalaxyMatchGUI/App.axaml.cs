@@ -67,7 +67,7 @@ public partial class App : Application
             ServiceProvider = services.BuildServiceProvider();
             
             // Navigate to login view
-            navigationService.NavigateTo<ChatViewModel>();
+            navigationService.NavigateTo<LoginViewModel>();
         }
 
         base.OnFrameworkInitializationCompleted();
