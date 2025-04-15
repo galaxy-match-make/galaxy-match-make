@@ -1,24 +1,12 @@
 using galaxy_match_make.Data;
+using galaxy_match_make.Hubs;
 using galaxy_match_make.Models;
 using galaxy_match_make.Repositories;
 using galaxy_match_make.Services;
-using galaxy_match_make.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(policy =>
-    {
-        policy
-            .WithOrigins("http://localhost:3000")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
-    });
-});
 //Add SignalR for realtime messaging
 builder.Services.AddSignalR();
 
@@ -110,7 +98,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseMiddleware<MiddlewareService>();
 
-app.UseCors();
+
 app.UseAuthorization();
 
 app.MapControllers();
