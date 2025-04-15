@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using galaxy_match_make.Models;
 using galaxy_match_make.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace galaxy_match_make.Controllers;
@@ -66,4 +68,5 @@ public class MessagesController : ControllerBase
 
         return Ok(messages);
     }
+
 }

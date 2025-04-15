@@ -1,6 +1,6 @@
 CREATE TABLE profiles (
     id SERIAL PRIMARY KEY NOT NULL,
-    user_id UUID NOT NULL,
+    user_id UUID NOT NULL UNIQUE,
     display_name VARCHAR NOT NULL,
     bio VARCHAR,
     avatar_url VARCHAR,

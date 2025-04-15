@@ -1,70 +1,66 @@
 ﻿using Dapper;
+using galaxy_match_make.Data;
 using galaxy_match_make.Models;
 using Npgsql;
+
 
 namespace galaxy_match_make.Repositories
 {
     public class UserRepository : IUserRepository
     {
-        private readonly IConfiguration _configuration;
+        private readonly DapperContext _context;
 
-        public UserRepository(IConfiguration configuration)
+        public UserRepository(DapperContext context)
         {
-            _configuration = configuration;
-        }
-
-        private NpgsqlConnection GetConnection()
-        {
-            return new NpgsqlConnection(_configuration
-                .GetConnectionString("DefaultConnection"));
+            _context = context;
         }
 
         public async Task<IEnumerable<UserDto>> GetAllUsers()
         {
-            using var connection = GetConnection();
+            using var connection = _context.CreateConnection();
             var users = await connection.QueryAsync<UserDto>("SELECT * FROM USERS");
             return users.ToList();
         }
 
         public async Task AddUser(string oauthId)
         {
-            using var connection = GetConnection();
-            connection.Open();
+            using var connection = _context.CreateConnection();
             await connection.ExecuteScalarAsync<Guid>(
                 @"INSERT INTO users (oauth_id) 
                       VALUES (@OAuthId) 
                       RETURNING id",
                 new { OAuthId = oauthId });
-            
         }
         
         public async Task<UserDto> GetUserByOauthId(string oauthId)
         {
-            using var connection = GetConnection();
+            using var connection = _context.CreateConnection();
             return await connection.QueryFirstOrDefaultAsync<UserDto>(
                 "SELECT id, oauth_id AS OAuthId, inactive FROM users WHERE oauth_id = @OAuthId LIMIT 1",
                 new { OAuthId = oauthId });
         }
         
-
-        async Task<UserDto> IUserRepository.GetUserById(Guid id)
+        public async Task<UserDto> GetUserById(Guid id)
         {
-            using var connection = GetConnection();
-            connection.Open();
+            using var connection = _context.CreateConnection();
             var user = await connection
-                .QueryFirstOrDefaultAsync<UserDto>("SELECT * FROM USERS WHERE ID= @Id", new { Id = id });
+                .QueryFirstOrDefaultAsync<UserDto>("SELECT * FROM USERS WHERE ID = @Id", new { Id = id });
 
             return user;
         }
         
-        Task IUserRepository.DeleteUser(Guid id)
+        public async Task DeleteUser(Guid id)
         {
-            throw new NotImplementedException();
+            using var connection = _context.CreateConnection();
+            await connection.ExecuteAsync("UPDATE users SET inactive = true WHERE id = @Id", new { Id = id });
         }
 
-        Task IUserRepository.UpdateUser(UserDto user)
+        public async Task UpdateUser(UserDto user)
         {
-            throw new NotImplementedException();
+            using var connection = _context.CreateConnection();
+            await connection.ExecuteAsync(
+                "UPDATE users SET oauth_id = @OAuthId, inactive = @Inactive WHERE id = @Id", 
+                new { Id = user.Id, OAuthId = user.OAuthId, Inactive = user.Inactive });
         }
     }
 }

@@ -7,8 +7,8 @@ namespace GalaxyMatchGUI.Models
     {
         public User()
         {
-            SentReactions = new HashSet<Reaction>();
-            ReceivedReactions = new HashSet<Reaction>();
+            // SentReactions = new HashSet<Contact>();
+            // ReceivedReactions = new HashSet<Contact>();
             SentMessages = new HashSet<Message>();
             ReceivedMessages = new HashSet<Message>();
             UserInterests = new HashSet<UserInterest>();
@@ -21,8 +21,8 @@ namespace GalaxyMatchGUI.Models
         // Navigation properties
         public Profile? Profile { get; set; }  // Made optional by removing required keyword and adding nullable
         public ICollection<UserInterest> UserInterests { get; set; }
-        public ICollection<Reaction> SentReactions { get; set; }
-        public ICollection<Reaction> ReceivedReactions { get; set; }
+        // public ICollection<Contact> SentReactions { get; set; }
+        // public ICollection<Contact> ReceivedReactions { get; set; }
         public ICollection<Message> SentMessages { get; set; }
         public ICollection<Message> ReceivedMessages { get; set; }
     }

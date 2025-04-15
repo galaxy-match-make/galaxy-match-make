@@ -1,5 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR;
+using System;
+using System.Threading.Tasks;
 
 
 namespace galaxy_match_make.Hubs
@@ -45,18 +47,18 @@ namespace galaxy_match_make.Hubs
 
         // Method for sending a message from one user to another
         public async Task SendMessageToUser(string sender, string receiver, string message)
-        {
+    {
             // Find the connection ID for the target user
             var receiverConnectionId = _users.FirstOrDefault(u => u.Value == receiver).Key;
             var senderConnectionId = _users.FirstOrDefault(u => u.Value == sender).Key;
 
             if (!string.IsNullOrEmpty(receiverConnectionId) && !string.IsNullOrEmpty(senderConnectionId))
-            {
+        {
                 Console.WriteLine("Receiver: " + _users[receiverConnectionId]);
                 Console.WriteLine("Sender: " + _users[senderConnectionId]);
                 Console.WriteLine("Message" + message);
                 Console.WriteLine("\n");
-
+            
                 // Send message to the receiver with the sender's name
                 try
                 {
@@ -67,9 +69,9 @@ namespace galaxy_match_make.Hubs
                     // Log error - likely means client disconnected
                     Console.WriteLine($"Failed to send: {ex.Message}");
                 }
-            }
+        }
             else
-            {
+        {
                 // If receiver not connected, notify sender
                 await Clients.Caller.SendAsync("ReceiveMessage", "System", $"User {receiver} is not connected.");
             }

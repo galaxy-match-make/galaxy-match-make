@@ -4,6 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:GalaxyMatchGUI.ViewModels"
              xmlns:conv="using:GalaxyMatchGUI.Converters"
+             xmlns:controls="using:Avalonia.Controls"
+             xmlns:progRing="using:Avalonia.Controls.ItemsRepeater"
              Background="#0D0221"
              mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="800"
              x:Class="GalaxyMatchGUI.Views.MatchingView"
@@ -173,7 +175,7 @@
             
             <Button Grid.Column="2" Margin="0,0,15,0"
                     Width="40" Height="40" CornerRadius="20" Background="#2A0F5B"
-                    Command="{Binding ViewMessagesCommand}">
+                    Command="{Binding ViewMessagesCommand}" Cursor="Hand">
                 <TextBlock Text="💬" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <Button.Transitions>
                     <Transitions>
@@ -189,165 +191,148 @@
             </Button>
         </Grid>
 
-        <!-- Swipeable Card - Improved for true responsiveness -->
-        <Border Grid.Row="1" 
-                VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                Margin="20"
-                CornerRadius="15" Classes="profileCard" Background="#1E0B45" ClipToBounds="True">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="20" Color="#5D12D2" Opacity="0.7"/>
-            </Border.Effect>
+        <!-- Swipeable Card - Centered with responsive sizing -->
+        <Grid Grid.Row="1">
+            <Border IsVisible="{Binding IsLoading}" 
+                   Width="50" Height="50"
+                   Background="Transparent"
+                   HorizontalAlignment="Center" 
+                   VerticalAlignment="Center">
+                <Ellipse Width="40" Height="40" 
+                         Stroke="#9D4EDD" 
+                         StrokeThickness="4"
+                         IsVisible="{Binding IsLoading}">
+                    <Ellipse.Styles>
+                        <Style Selector="Ellipse">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                                    <KeyFrame Cue="0%">
+                                        <Setter Property="RotateTransform.Angle" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame Cue="100%">
+                                        <Setter Property="RotateTransform.Angle" Value="360"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Ellipse.Styles>
+                </Ellipse>
+            </Border>
+                         
+            <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                    MaxWidth="500" MinWidth="300"
+                    Width="{Binding $parent[Grid].Bounds.Width}"
+                    Margin="20"
+                    CornerRadius="15" Classes="profileCard" Background="#1E0B45" ClipToBounds="True"
+                    RenderTransform="{Binding}">
+                <Border.RenderTransform>
+                    <TransformGroup>
+                        <RotateTransform Angle="{Binding CardRotation}"/>
+                        <TranslateTransform X="{Binding CardTranslateX}"/>
+                        <ScaleTransform ScaleX="{Binding CardScale}" ScaleY="{Binding CardScale}"/>
+                    </TransformGroup>
+                </Border.RenderTransform>
+                <Border.Transitions>
+                    <Transitions>
+                        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3"/>
+                        <DoubleTransition Property="Opacity" Duration="0:0:0.3"/>
+                    </Transitions>
+                </Border.Transitions>
+                <Border.Opacity>
+                    <Binding Path="CardOpacity"/>
+                </Border.Opacity>
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="20" Color="#5D12D2" Opacity="0.7"/>
+                </Border.Effect>
 
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="300" MinHeight="250"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                
-                <!-- Profile Image with gradient overlay - fixed for proper display -->
-                <Border Grid.Row="0" ClipToBounds="True" CornerRadius="15,15,0,0">
-                    <Border.Background>
-                        <ImageBrush Source="{Binding AvatarImage}" 
-                                   Stretch="UniformToFill"
-                                   AlignmentX="Center"
-                                   AlignmentY="Top"/>
-                    </Border.Background>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" MinHeight="250" MaxHeight="350"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
                     
-                    <!-- Enhanced gradient overlay with animated glow -->
-                    <Grid>
-                        <Border VerticalAlignment="Bottom" Height="120">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#001E0B45" Offset="0"/>
-                                    <GradientStop Color="#FF1E0B45" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
-                        
-                        <!-- Subtle holographic effect overlay -->
-                        <Border Opacity="0.15">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#0000FF9F" Offset="0"/>
-                                    <GradientStop Color="#609D4EDD" Offset="0.5"/>
-                                    <GradientStop Color="#0000FF9F" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <Border.Styles>
-                                <Style Selector="Border">
-                                    <Style.Animations>
-                                        <Animation Duration="0:0:4" IterationCount="Infinite">
-                                            <KeyFrame Cue="0%">
-                                                <Setter Property="Opacity" Value="0.05"/>
-                                            </KeyFrame>
-                                            <KeyFrame Cue="50%">
-                                                <Setter Property="Opacity" Value="0.2"/>
-                                            </KeyFrame>
-                                            <KeyFrame Cue="100%">
-                                                <Setter Property="Opacity" Value="0.05"/>
-                                            </KeyFrame>
-                                        </Animation>
-                                    </Style.Animations>
-                                </Style>
-                            </Border.Styles>
-                        </Border>
-                    </Grid>
-                </Border>
-
-                <!-- Profile Information with improved responsive layout -->
-                <Border Grid.Row="1" Padding="20,10,20,10" Background="#1E0B45">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" 
-                                  HorizontalScrollBarVisibility="Disabled">
-                        <StackPanel Spacing="5">
-                            <!-- Name and Basic Info with better wrapping -->
-                            <WrapPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                <TextBlock Text="{Binding CurrentProfile.DisplayName}" 
-                                           FontSize="26" 
-                                           TextWrapping="Wrap" 
-                                           FontWeight="Bold" 
-                                           Foreground="#FFFFFF"
-                                           Margin="0,0,10,0"/>
-                                <TextBlock Text="{Binding CurrentProfile.GalacticDateOfBirth}" 
-                                           FontSize="26" 
-                                           FontWeight="Bold" 
-                                           Foreground="#CCCCFF"
-                                           Margin="0,0,10,0"/>
-                                <Border Background="#7B2CBF" CornerRadius="10" Padding="8,2" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding CurrentProfile.Species.SpeciesName}" 
-                                               FontSize="14" 
-                                               Foreground="White"/>
-                                </Border>
-                            </WrapPanel>
-
-                            <StackPanel Orientation="Horizontal" Spacing="5" Margin="0,2,0,5">
-                                <TextBlock Text="Planet: " FontSize="16" Foreground="#9F9FFF"/>
-                                <TextBlock Text="{Binding CurrentProfile.Planet.PlanetName}" FontSize="16" Foreground="#9F9FFF"/>
-                            </StackPanel>
-
-                            <!-- Physical Attributes with responsive layout -->
-                            <ItemsControl ItemsSource="{Binding PhysicalAttributes}" HorizontalAlignment="Stretch">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Stretch"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="#2A0F5B" CornerRadius="15" Padding="10,5" Margin="0,0,8,8">
-                                            <Border.Transitions>
-                                                <Transitions>
-                                                    <BrushTransition Property="Background" Duration="0:0:0.2"/>
-                                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/>
-                                                </Transitions>
-                                            </Border.Transitions>
-                                            <Border.Styles>
-                                                <Style Selector="Border:pointerover">
-                                                    <Setter Property="Background" Value="#3A1F7B"/>
-                                                    <Setter Property="RenderTransform" Value="scale(1.05)"/>
-                                                </Style>
-                                            </Border.Styles>
-                                            <StackPanel Orientation="Horizontal" Spacing="5">
-                                                <TextBlock Text="{Binding Icon}" FontSize="14"/>
-                                                <TextBlock Text="{Binding Description}" Foreground="#CCCCFF" FontSize="14"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-
-                            <!-- Bio with animated highlighting and responsive layout -->
-                            <Border Background="#1A0D35" CornerRadius="10" Padding="12,8" Margin="0,0,0,5">
+                    <!-- Profile Image with gradient overlay -->
+                    <Border Grid.Row="0" ClipToBounds="True" CornerRadius="15,15,0,0">
+                        <Border.Background>
+                            <ImageBrush Source="{Binding AvatarImage}" 
+                                       Stretch="UniformToFill"
+                                       AlignmentX="Center"
+                                       AlignmentY="Top"/>
+                        </Border.Background>
+                    
+                        <!-- Enhanced gradient overlay with animated glow -->
+                        <Grid>
+                            <Border VerticalAlignment="Bottom" Height="120">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Color="#001E0B45" Offset="0"/>
+                                        <GradientStop Color="#FF1E0B45" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                            
+                            <!-- Subtle holographic effect overlay -->
+                            <Border Opacity="0.15">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#0000FF9F" Offset="0"/>
+                                        <GradientStop Color="#609D4EDD" Offset="0.5"/>
+                                        <GradientStop Color="#0000FF9F" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
                                 <Border.Styles>
                                     <Style Selector="Border">
                                         <Style.Animations>
-                                            <Animation Duration="0:0:5" IterationCount="Infinite">
+                                            <Animation Duration="0:0:4" IterationCount="Infinite">
                                                 <KeyFrame Cue="0%">
-                                                    <Setter Property="BorderBrush" Value="#2A0F5B"/>
+                                                    <Setter Property="Opacity" Value="0.05"/>
                                                 </KeyFrame>
                                                 <KeyFrame Cue="50%">
-                                                    <Setter Property="BorderBrush" Value="#5D12D2"/>
+                                                    <Setter Property="Opacity" Value="0.2"/>
                                                 </KeyFrame>
                                                 <KeyFrame Cue="100%">
-                                                    <Setter Property="BorderBrush" Value="#2A0F5B"/>
+                                                    <Setter Property="Opacity" Value="0.05"/>
                                                 </KeyFrame>
                                             </Animation>
                                         </Style.Animations>
                                     </Style>
                                 </Border.Styles>
-                                <Border.BorderThickness>
-                                    <Thickness>1</Thickness>
-                                </Border.BorderThickness>
-                                <TextBlock Text="{Binding CurrentProfile.Bio}"
-                                       Foreground="#CCCCFF" FontSize="15" 
-                                       TextWrapping="Wrap"/>
                             </Border>
+                        </Grid>
+                    </Border>
 
-                            <!-- Interests with improved responsive layout -->
-                            <StackPanel>
-                                <TextBlock Text="Interests:" Foreground="#00FF9F" 
-                                           FontSize="16" FontWeight="SemiBold" 
-                                           Margin="0,3,0,5"/>
-                                <ItemsControl ItemsSource="{Binding Interests}" HorizontalAlignment="Stretch">
+                    <!-- Profile Information with improved responsive layout -->
+                    <Border Grid.Row="1" Padding="20,10,20,10" Background="#1E0B45">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                                    HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Spacing="5">
+                                <!-- Name and Basic Info with better wrapping -->
+                                <WrapPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                    <TextBlock Text="{Binding CurrentProfile.DisplayName}" 
+                                            FontSize="26" 
+                                            TextWrapping="Wrap" 
+                                            FontWeight="Bold" 
+                                            Foreground="#FFFFFF"
+                                            Margin="0,0,10,0"/>
+                                    <TextBlock Text="{Binding CurrentProfile.GalacticDateOfBirth}" 
+                                            FontSize="26" 
+                                            FontWeight="Bold" 
+                                            Foreground="#CCCCFF"
+                                            Margin="0,0,10,0"/>
+                                    <Border Background="#7B2CBF" CornerRadius="10" Padding="8,2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding CurrentProfile.Species.SpeciesName}" 
+                                                FontSize="14" 
+                                                Foreground="White"/>
+                                    </Border>
+                                </WrapPanel>
+
+                                <StackPanel Orientation="Horizontal" Spacing="5" Margin="0,2,0,5">
+                                    <TextBlock Text="Planet: " FontSize="16" Foreground="#9F9FFF"/>
+                                    <TextBlock Text="{Binding CurrentProfile.Planet.PlanetName}" FontSize="16" Foreground="#9F9FFF"/>
+                                </StackPanel>
+
+                                <!-- Physical Attributes with responsive layout -->
+                                <ItemsControl ItemsSource="{Binding PhysicalAttributes}" HorizontalAlignment="Stretch">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <WrapPanel Orientation="Horizontal" HorizontalAlignment="Stretch"/>
@@ -368,17 +353,80 @@
                                                         <Setter Property="RenderTransform" Value="scale(1.05)"/>
                                                     </Style>
                                                 </Border.Styles>
-                                                <TextBlock Text="{Binding Name}" Foreground="#CCCCFF" FontSize="14"/>
+                                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                                    <TextBlock Text="{Binding Icon}" FontSize="14"/>
+                                                    <TextBlock Text="{Binding Description}" Foreground="#CCCCFF" FontSize="14"/>
+                                                </StackPanel>
                                             </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
+
+                                <!-- Bio with animated highlighting and responsive layout -->
+                                <Border Background="#1A0D35" CornerRadius="10" Padding="12,8" Margin="0,0,0,5">
+                                    <Border.Styles>
+                                        <Style Selector="Border">
+                                            <Style.Animations>
+                                                <Animation Duration="0:0:5" IterationCount="Infinite">
+                                                    <KeyFrame Cue="0%">
+                                                        <Setter Property="BorderBrush" Value="#2A0F5B"/>
+                                                    </KeyFrame>
+                                                    <KeyFrame Cue="50%">
+                                                        <Setter Property="BorderBrush" Value="#5D12D2"/>
+                                                    </KeyFrame>
+                                                    <KeyFrame Cue="100%">
+                                                        <Setter Property="BorderBrush" Value="#2A0F5B"/>
+                                                    </KeyFrame>
+                                                </Animation>
+                                            </Style.Animations>
+                                        </Style>
+                                    </Border.Styles>
+                                    <Border.BorderThickness>
+                                        <Thickness>1</Thickness>
+                                    </Border.BorderThickness>
+                                    <TextBlock Text="{Binding CurrentProfile.Bio}"
+                                        Foreground="#CCCCFF" FontSize="15" 
+                                        TextWrapping="Wrap"/>
+                                </Border>
+
+                                <!-- Interests with improved responsive layout -->
+                                <StackPanel>
+                                    <TextBlock Text="Interests:" Foreground="#00FF9F" 
+                                            FontSize="16" FontWeight="SemiBold" 
+                                            Margin="0,3,0,5"/>
+                                    <ItemsControl ItemsSource="{Binding Interests}" HorizontalAlignment="Stretch">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Stretch"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#2A0F5B" CornerRadius="15" Padding="10,5" Margin="0,0,8,8">
+                                                    <Border.Transitions>
+                                                        <Transitions>
+                                                            <BrushTransition Property="Background" Duration="0:0:0.2"/>
+                                                            <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/>
+                                                        </Transitions>
+                                                    </Border.Transitions>
+                                                    <Border.Styles>
+                                                        <Style Selector="Border:pointerover">
+                                                            <Setter Property="Background" Value="#3A1F7B"/>
+                                                            <Setter Property="RenderTransform" Value="scale(1.05)"/>
+                                                        </Style>
+                                                    </Border.Styles>
+                                                    <TextBlock Text="{Binding Name}" Foreground="#CCCCFF" FontSize="14"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
                             </StackPanel>
-                        </StackPanel>
-                    </ScrollViewer>
-                </Border>
-            </Grid>
-        </Border>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
 
         <!-- Action Buttons with improved positioning for responsiveness -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" 

@@ -1,0 +1,95 @@
+name: Apply API Terraform and Set Variables/Secrets
+
+on:
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    name: Apply Infrastructure
+    runs-on: ubuntu-latest
+    outputs:
+      instance_ip: ${{ steps.terraform_output.outputs.instance_public_ip }}
+      role_arn: ${{ steps.terraform_output.outputs.role_arn }}
+      ecr_repo_url: ${{ steps.terraform_output.outputs.ecr_repository_url }}
+    
+    defaults:
+      run:
+        working-directory: api/terraform
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ">= 1.0.0"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: af-south-1
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color
+
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -auto-approve -no-color
+
+      - name: Output Terraform Variables
+        id: terraform_output
+        run: |
+          echo "instance_public_ip=$(terraform output -json instance_public_ip | jq -r '.')" >> $GITHUB_OUTPUT
+          echo "role_arn=$(terraform output -json role_arn | jq -r '.')" >> $GITHUB_OUTPUT
+          echo "ecr_repository_url=$(terraform output -json ecr_repository_url | jq -r '.')" >> $GITHUB_OUTPUT
+
+  set_variables_secrets:
+    name: Set Repository Variables and Secrets
+    runs-on: ubuntu-latest
+    needs: terraform
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install GitHub CLI
+        run: sudo apt-get update && sudo apt-get install -y gh
+
+      - name: Login to GitHub CLI
+        run: gh auth login --with-token
+
+      - name: Setup Git with GitHub CLI
+        run: gh auth setup-git
+
+      - name: Set AWS_GITHUB_ACTIONS_ROLE_ARN variable
+        run: gh variable set AWS_GITHUB_ACTIONS_ROLE_ARN --body "${{ needs.terraform.outputs.role_arn }}"
+
+      - name: Set ECR_REPOSITORY_NAME variable
+        run: |
+          REPO_URL="${{ needs.terraform.outputs.ecr_repo_url }}"
+          REPO_NAME=$(echo "$REPO_URL" | sed 's#^[^/]\+/[^/]\+\/\([^/]\+\)$#\1#')
+          gh variable set ECR_REPOSITORY_NAME --body "$REPO_NAME"
+
+      - name: Set EC2_INSTANCE_PUBLIC_IP variable
+        run: gh variable set EC2_INSTANCE_PUBLIC_IP --body "${{ needs.terraform.outputs.instance_ip }}"
+
+      - name: Set HOST secret
+        run: |
+          if ${{ needs.terraform.outputs.instance_ip != '' }}; then
+            gh secret set HOST --body "${{ needs.terraform.outputs.instance_ip }}"
+            echo "HOST secret updated."
+          else
+            echo "EC2 instance IP address is not available, skipping HOST secret update."
+          fi

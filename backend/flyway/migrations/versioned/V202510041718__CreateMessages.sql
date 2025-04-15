@@ -4,6 +4,6 @@ CREATE TABLE messages (
     sent_date TIMESTAMP,
     sender_id UUID NOT NULL,
     recipient_id UUID NOT NULL,
-    CONSTRAINT fk_sender FOREIGN KEY (sender_id) REFERENCES users(id),
-    CONSTRAINT fk_recipient FOREIGN KEY (recipient_id) REFERENCES users(id)
+    CONSTRAINT fk_sender FOREIGN KEY (sender_id) REFERENCES profiles(user_id),
+    CONSTRAINT fk_recipient FOREIGN KEY (recipient_id) REFERENCES profiles(user_id)
 );

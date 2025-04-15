@@ -28,9 +28,54 @@ public class MatchingViewModel : ViewModelBase
         get => _avatarImage;
         set => SetProperty(ref _avatarImage, value);
     }
+    
+    // Animation properties for swipe effects
+    private double _cardTranslateX;
+    public double CardTranslateX
+    {
+        get => _cardTranslateX;
+        set => SetProperty(ref _cardTranslateX, value);
+    }
+    
+    private double _cardRotation;
+    public double CardRotation
+    {
+        get => _cardRotation;
+        set => SetProperty(ref _cardRotation, value);
+    }
+    
+    private double _cardScale = 1.0;
+    public double CardScale
+    {
+        get => _cardScale;
+        set => SetProperty(ref _cardScale, value);
+    }
+    
+    private double _cardOpacity = 1.0;
+    public double CardOpacity
+    {
+        get => _cardOpacity;
+        set => SetProperty(ref _cardOpacity, value);
+    }
+    
+    private bool _isLoading;
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set => SetProperty(ref _isLoading, value);
+    }
+
+    private string _statusMessage = string.Empty;
+    public string StatusMessage
+    {
+        get => _statusMessage;
+        set => SetProperty(ref _statusMessage, value);
+    }
 
     public ObservableCollection<PhysicalAttribute> PhysicalAttributes { get; } = new();
     public ObservableCollection<InterestItem> Interests { get; } = new();
+
+    private readonly ReactionService _reactionService;
 
     public IRelayCommand SwipeLeftCommand { get; }
     public IRelayCommand SwipeRightCommand { get; }
@@ -39,6 +84,7 @@ public class MatchingViewModel : ViewModelBase
 
     public MatchingViewModel()
     {
+        _reactionService = new ReactionService();
         SwipeLeftCommand = new RelayCommand(SwipeLeft);
         SwipeRightCommand = new RelayCommand(SwipeRight);
         ViewProfileCommand = new RelayCommand(ViewProfile);
@@ -50,30 +96,109 @@ public class MatchingViewModel : ViewModelBase
 
     private void SwipeLeft()
     {
-        // Handle dislike action
-        LoadNextProfile();
+        _ = HandleSwipe(-300, -15, false);
     }
 
     private void SwipeRight()
     {
-        // Handle like action
-        LoadNextProfile();
+        _ = HandleSwipe(300, 15, true);
+    }
+    
+    private async Task HandleSwipe(double translateX, double rotation, bool isLike)
+    {
+        if (CurrentProfile?.User == null)
+        {
+            return;
+        }
+
+        await AnimateSwipe(translateX, rotation);
+        
+        try
+        {
+            bool success = await _reactionService.SendReactionAsync(
+                CurrentProfile.UserId, 
+                isLike
+            );
+            
+            if (success)
+            {
+                StatusMessage = isLike ? "Liked!" : "Passed";
+            }
+            else
+            {
+                StatusMessage = "Failed to record your reaction";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error: {ex.Message}";
+        }
+    }
+    
+    private async Task AnimateSwipe(double translateX, double rotation)
+    {
+        CardRotation = rotation;
+        CardTranslateX = translateX;
+        CardOpacity = 0;
+        
+        await Task.Delay(300);
+        
+        // Reset values
+        CardTranslateX = 0;
+        CardRotation = 0;
+        CardOpacity = 0;
+        
+        await LoadNextProfile();
+        
+        // Fade in with slight scale effect
+        CardScale = 0.95;
+        await Task.Delay(50);
+        
+        // Restore to normal
+        CardOpacity = 1;
+        CardScale = 1;
     }
 
     private void ViewProfile()
     {
-        // Navigate to profile view
+        // Check if there's a profile to view
+        if (CurrentProfile == null) return;
+        
+        // Create a new ProfileViewModel instance
+        var profileViewModel = new ProfileViewModel
+        {
+            IsEditMode = true,
+            ExistingProfile = CurrentProfile,
+            DisplayName = CurrentProfile.DisplayName,
+            Bio = CurrentProfile.Bio,
+            AvatarUrl = CurrentProfile.AvatarUrl,
+            HeightInGalacticInches = CurrentProfile.HeightInGalacticInches,
+            GalacticDateOfBirth = CurrentProfile.GalacticDateOfBirth,
+            SelectedPlanet = CurrentProfile.Planet,
+            SelectedSpecies = CurrentProfile.Species,
+            SelectedGender = CurrentProfile.Gender
+        };
+        
+        // Navigate to the profile view
+        NavigationService?.NavigateTo(profileViewModel);
     }
 
     private void ViewMessages()
     {
         // Navigate to messages view
+        NavigationService?.NavigateTo<InteractionsViewModel>();
     }
 
-    private void LoadNextProfile()
+    private async Task LoadNextProfile()
     {
+        IsLoading = true;
+        StatusMessage = "Finding your next match...";
+        
         // In a real app, this would fetch the next profile from a service
-        _ = LoadProfileWithBase64Image();
+        await LoadProfileWithBase64Image();
+        
+        IsLoading = false;
+        StatusMessage = string.Empty;
     }
 
     private async Task LoadProfileWithBase64Image()
@@ -142,15 +267,16 @@ public class MatchingViewModel : ViewModelBase
 
     private Profile CreateBasicProfile()
     {
-        // Create a user first without requiring a profile
+        // Create a user with real ID for testing
         var user = new User { 
             OauthId = "mock-oauth-id",
-            Id = Guid.NewGuid() 
+            Id = Guid.Parse("b4fa3ae7-c82a-4d3e-acc3-84b60b4f0492") // Real user ID for testing
         };
         
         // Create the profile with a reference to the user
         var profile = new Profile
         {
+            Id = 2, // Real profile ID for testing
             DisplayName = "Zorb",
             Bio = "Greetings earthlings! I enjoy exploring the cosmos and collecting rare minerals. Looking for a companion who appreciates the beauty of nebulae and doesn't mind my occasional tentacle shedding.",
             GalacticDateOfBirth = 8750, // Galactic year

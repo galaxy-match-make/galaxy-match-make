@@ -10,12 +10,14 @@ using GalaxyMatchGUI.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using Avalonia.Media.Imaging;
+using GalaxyMatchGUI.Models;
 
 namespace GalaxyMatchGUI;
 
 public partial class App : Application
 {
     public static IServiceProvider? ServiceProvider { get; private set; }
+    public static AppSettings Settings { get; private set; }
 
     public override void Initialize()
     {
@@ -50,6 +52,10 @@ public partial class App : Application
             // Register views with navigation service
             navigationService.RegisterView<LoginViewModel, LoginView>();
             navigationService.RegisterView<MatchingViewModel, MatchingView>();
+            navigationService.RegisterView<InteractionsViewModel, InteractionsView>();
+            navigationService.RegisterView<MessageRoomViewModel, MessageRoomView>();
+            navigationService.RegisterView<ProfileViewModel, ProfileView>();
+            
             // Inside OnFrameworkInitializationCompleted()
             navigationService.RegisterView<ChatViewModel, ChatView>();
 
@@ -68,6 +74,7 @@ public partial class App : Application
             
             // Navigate to login view
             navigationService.NavigateTo<LoginViewModel>();
+            Settings = AppSettings.Load();
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -79,9 +86,11 @@ public partial class App : Application
         services.AddTransient<LoginViewModel>();
         services.AddTransient<MainWindowViewModel>();
         services.AddTransient<MatchingViewModel>();
+        services.AddTransient<InteractionsViewModel>();
+        services.AddTransient<MessageRoomViewModel>();
+        services.AddTransient<ProfileViewModel>();
         services.AddTransient<ChatViewModel>();
         
-        // Register other services here
     }
 
     private void DisableAvaloniaDataAnnotationValidation()

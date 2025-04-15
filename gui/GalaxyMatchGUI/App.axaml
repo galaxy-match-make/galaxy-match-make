@@ -16,5 +16,9 @@
     
     <Application.Resources>
         <converters:InitialsConverter x:Key="InitialsConverter" />
+        <converters:InterestSelectedConverter x:Key="InterestSelectedConverter" />
+        <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
+        <converters:BoolToAlignmentConverter x:Key="BoolToAlignmentConverter"/>
+        <converters:BoolToThicknessConverter x:Key="BoolToThicknessConverter"/>
     </Application.Resources>
 </Application>

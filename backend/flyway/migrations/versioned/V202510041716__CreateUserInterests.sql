@@ -3,5 +3,5 @@ CREATE TABLE user_interests (
     interest_id INT NOT NULL,
     user_id UUID NOT NULL,
     CONSTRAINT fk_interest FOREIGN KEY (interest_id) REFERENCES interests(id),
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES profiles(user_id)
 );

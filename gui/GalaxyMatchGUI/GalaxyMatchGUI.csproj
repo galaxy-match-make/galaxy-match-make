@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.2.6" />
+    <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
     <PackageReference Include="Avalonia.Desktop" Version="11.2.6" />
     <PackageReference Include="Avalonia.Svg.Skia" Version="11.2.6.1" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.6" />
@@ -26,5 +27,20 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.4" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.4" />
+    <PackageReference Include="MessageBox.Avalonia" Version="3.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.4" />
+    <PackageReference Include="ReactiveUI" Version="20.2.45" />
+    <PackageReference Include="System.Reactive" Version="6.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\InteractionsView.axaml.cs">
+      <DependentUpon>InteracctionsView.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\InteractionsView.axaml.cs">
+      <DependentUpon>InteractionsView.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>
