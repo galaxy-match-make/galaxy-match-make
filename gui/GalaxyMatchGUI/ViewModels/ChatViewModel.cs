@@ -6,6 +6,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GalaxyMatchGUI.Models;
 using Microsoft.AspNetCore.SignalR.Client;
 
 namespace GalaxyMatchGUI.ViewModels
@@ -20,7 +21,14 @@ namespace GalaxyMatchGUI.ViewModels
 
         public ChatViewModel()
         {
-           
+            Messages.Add("ViewModel initialized.");
+        }
+
+
+
+        [RelayCommand]
+        public async Task Connect()
+        {
             _connection = new HubConnectionBuilder()
                 .WithUrl($"https://localhost:7280/messagehub?username={Uri.EscapeDataString(Username)}")
                 .Build();
@@ -40,14 +48,6 @@ namespace GalaxyMatchGUI.ViewModels
                 }
             };
 
-            Messages.Add("ViewModel initialized.");
-        }
-
-
-
-        [RelayCommand]
-        public async Task Connect()
-        {
             try
             {
                 await _connection.StartAsync();
@@ -60,6 +60,7 @@ namespace GalaxyMatchGUI.ViewModels
                 {
                     Dispatcher.UIThread.InvokeAsync(() =>
                     {
+                        
                         Messages.Add($"{user}: {message}");
                     });
                 });
@@ -77,11 +78,13 @@ namespace GalaxyMatchGUI.ViewModels
             {
                 try
                 {
-                    await _connection.InvokeAsync("SendMessage",
+                    await _connection.InvokeAsync("SendMessageToUser", Username,
                         TargetUsername,
                         CurrentMessage);
 
+                    Messages.Add($"{CurrentMessage}");
                     CurrentMessage = string.Empty;
+                    
                 }
                 catch (Exception ex)
                 {
