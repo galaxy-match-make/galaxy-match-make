@@ -14,14 +14,17 @@ namespace GalaxyMatchGUI.ViewModels
     public partial class ChatViewModel : ViewModelBase
     {
         private HubConnection _connection;
-        public ObservableCollection<string> Messages { get; } = new ObservableCollection<string>();
-        public string CurrentMessage { get; set; } = string.Empty;
+        // public ObservableCollection<string> Messages { get; } = new ObservableCollection<string>();
+        public ObservableCollection<ChatMessage> Messages { get; } = new();
+
+        [ObservableProperty]
+        private string currentMessage;
         public string Username { get; set; } = "Cindi";
         public string TargetUsername { get; set; } = "Ben";
 
         public ChatViewModel()
         {
-            Messages.Add("ViewModel initialized.");
+            AddMessage("ViewModel initialized.");
         }
 
 
@@ -33,41 +36,46 @@ namespace GalaxyMatchGUI.ViewModels
                 .WithUrl($"https://localhost:7280/messagehub?username={Uri.EscapeDataString(Username)}")
                 .Build();
 
+            _connection.On<string, string>("ReceiveMessage", (user, message) =>
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    Messages.Add(new ChatMessage
+                    {
+                        Text = $"{user}: {message}",
+                        IsIncoming = true
+                    });
+                });
+            });
+
             _connection.Closed += async (error) =>
             {
-                Messages.Add("Connection closed. Attempting to reconnect...");
+                AddMessage("Connection closed. Attempting to reconnect...");
                 await Task.Delay(new Random().Next(0, 5) * 1000);
                 try
                 {
                     await _connection.StartAsync();
-                    Messages.Add("Reconnected to server");
+                    AddMessage("Reconnected to server");
                 }
                 catch (Exception ex)
                 {
-                    Messages.Add($"Failed to reconnect: {ex.Message}");
+                    AddMessage($"Failed to reconnect: {ex.Message}");
                 }
             };
 
             try
             {
                 await _connection.StartAsync();
-                Messages.Add($"Connected as {Username}");
-
-
-                
-
-                _connection.On<string, string>("ReceiveMessage", (user, message) =>
-                {
-                    Dispatcher.UIThread.InvokeAsync(() =>
-                    {
-                        
-                        Messages.Add($"{user}: {message}");
-                    });
+                Messages.Add(new ChatMessage 
+                { 
+                    Text = $"Connected as {Username}", 
+                    IsIncoming=false
                 });
+
             }
             catch (Exception ex)
             {
-                Messages.Add($"Error: {ex.Message}");
+                AddMessage($"Error: {ex.Message}");
             }
         }
 
@@ -82,7 +90,7 @@ namespace GalaxyMatchGUI.ViewModels
                         TargetUsername,
                         CurrentMessage);
 
-                    Messages.Add($"{CurrentMessage}");
+                    AddMessage($"{CurrentMessage}");
                     CurrentMessage = string.Empty;
                     
                 }
@@ -96,7 +104,11 @@ namespace GalaxyMatchGUI.ViewModels
 
         private void AddMessage(string message)
         {
-            Messages.Add(message);
+            Messages.Add(new ChatMessage
+            {
+                Text = $"{message}",
+                IsIncoming = false
+            });
         }
 
     }

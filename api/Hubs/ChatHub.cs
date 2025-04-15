@@ -20,10 +20,10 @@ namespace galaxy_match_make.Hubs
                 // Map the connection ID to the username
                 _users[Context.ConnectionId] = username;
                 Console.WriteLine("\n");
-                foreach (var kvp in _users)
-                {
-                    Console.WriteLine($"Key: {kvp.Key}, Value: {kvp.Value}");
-                }
+                //foreach (var kvp in _users)
+                //{
+                //    Console.WriteLine($"Key: {kvp.Key}, Value: {kvp.Value}");
+                //}
             }
 
             return base.OnConnectedAsync();
@@ -54,9 +54,19 @@ namespace galaxy_match_make.Hubs
             {
                 Console.WriteLine("Receiver: " + _users[receiverConnectionId]);
                 Console.WriteLine("Sender: " + _users[senderConnectionId]);
+                Console.WriteLine("Message" + message);
+                Console.WriteLine("\n");
 
                 // Send message to the receiver with the sender's name
-                await Clients.Client(receiverConnectionId).SendAsync("ReceiveMessage", sender, message);
+                try
+                {
+                    await Clients.Client(receiverConnectionId).SendAsync("ReceiveMessage", sender, message);
+                }
+                catch (Exception ex)
+                {
+                    // Log error - likely means client disconnected
+                    Console.WriteLine($"Failed to send: {ex.Message}");
+                }
             }
             else
             {

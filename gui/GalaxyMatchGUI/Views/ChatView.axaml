@@ -1,9 +1,14 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:GalaxyMatchGUI.ViewModels"
+             xmlns:conv="using:GalaxyMatchGUI.Converters"
              x:Class="GalaxyMatchGUI.Views.ChatView"
              x:DataType="vm:ChatViewModel"
              Background="#0D0221">
+	<UserControl.Resources>
+		<conv:IncomingMessageBackgroundConverter x:Key="IncomingMessageBackgroundConverter"/>
+		<conv:MessageAlignmentConverter x:Key="MessageAlignmentConverter"/>
+	</UserControl.Resources>
 
 	<Grid Margin="10">
 		<Grid.RowDefinitions>
@@ -21,7 +26,7 @@
                          FontSize="16"
                          Foreground="Black"
                          Background="#3A2A6B"
-						 Text="{Binding Username}"
+                         Text="{Binding Username}"
                          Watermark="Your Name"/>
 
 				<TextBox x:Name="TargetUserTextBox"
@@ -30,14 +35,13 @@
                          FontSize="16"
                          Foreground="Black"
                          Background="#3A2A6B"
-						 Text="{Binding TargetUsername}"
+                         Text="{Binding TargetUsername}"
                          Watermark="Target User"/>
 
-				<Button  Content="Connect"
+				<Button Content="Connect"
                         Command="{Binding ConnectCommand}"
                         Width="100"
                         FontSize="16"
-						
                         Foreground="White"
                         Background="#6D4DFF"
                         Padding="5,2"/>
@@ -45,23 +49,26 @@
 		</Border>
 
 		<!-- Message Display -->
-		<ListBox x:Name="MessagesListBox"
-                 Grid.Row="1"
+		<ListBox Grid.Row="1"
                  ItemsSource="{Binding Messages}"
                  Margin="0,10"
                  Background="#1E1249"
-                  Foreground="Black"
-                 FontSize="15"
                  BorderBrush="#6D4DFF"
                  BorderThickness="1"
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
 			<ListBox.ItemTemplate>
 				<DataTemplate>
-					<TextBlock Text="{Binding}"
-                               FontSize="15"
-                               Padding="10"
-                               Foreground="White"
-                               TextWrapping="Wrap"/>
+					<Border
+                        Background="{Binding IsIncoming, Converter={StaticResource IncomingMessageBackgroundConverter}}"
+                        CornerRadius="10"
+                        Padding="10"
+                        Margin="5"
+                        HorizontalAlignment="{Binding IsIncoming, Converter={StaticResource MessageAlignmentConverter}}"
+                        MaxWidth="300">
+						<TextBlock Text="{Binding Text}"
+                                   Foreground="White"
+                                   TextWrapping="Wrap"/>
+					</Border>
 				</DataTemplate>
 			</ListBox.ItemTemplate>
 		</ListBox>
@@ -73,21 +80,18 @@
                          Width="400"
                          FontSize="16"
                          Height="40"
-                          Foreground="Black"
+                         Foreground="Black"
                          Background="#3A2A6B"
-						 Text="{Binding CurrentMessage}"
+                         Text="{Binding CurrentMessage}"
                          Watermark="Type your message..."/>
 
-				<Button  Content="Send"
+				<Button Content="Send"
                         Command="{Binding SendMessageCommand}"
                         Width="100"
                         FontSize="16"
-						
                         Foreground="White"
                         Background="#6D4DFF"
                         Padding="5,2"/>
-
-			
 			</StackPanel>
 		</Border>
 	</Grid>
