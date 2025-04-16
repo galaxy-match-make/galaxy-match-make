@@ -48,11 +48,13 @@
                             <StackPanel>
                                 <TextBlock Text="{Binding Content}" 
                                            Foreground="White"
-                                           TextWrapping="Wrap"/>
+                                           TextWrapping="Wrap"
+                                           MaxWidth="700"/>
                                 <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm}'}" 
                                            Foreground="LightGray" 
                                            FontSize="10" 
-                                           HorizontalAlignment="Right"/>
+                                           HorizontalAlignment="Right"
+                                           MaxWidth="700"/>
                             </StackPanel>
                         </Border>
                     </DataTemplate>
