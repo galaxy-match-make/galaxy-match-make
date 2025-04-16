@@ -129,36 +129,85 @@
 
                 <!-- Profile Avatar Section -->
                 <Grid ColumnDefinitions="Auto,*">
-                    <Border Grid.Column="0" 
-                            Width="120" Height="120" 
-                            CornerRadius="60" 
-                            Background="#2A0F5B" 
-                            Margin="10,0,20,0"
-                            ClipToBounds="True">
-                        <Panel>
-                            <!-- Default avatar image -->
-                            <Image Source="avares://GalaxyMatchGUI/Assets/alien_profile.png"
-                                Width="100" Height="100"
-                                IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"/>
-                            
-                            <!-- User avatar if URL is provided -->
-                            <Image Source="{Binding AvatarImage}"
-                                IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Stretch"
-                                Stretch="UniformToFill"/>
-                        </Panel>
-                    </Border>
-                    
-                    <StackPanel Grid.Column="1" Spacing="10" VerticalAlignment="Center">
-                    <TextBlock Text="Profile Image:" Foreground="#CCCCFF" FontWeight="SemiBold"/>
-                    <Button Content="Upload Image" Command="{Binding UploadImageCommand}" Width="150" HorizontalAlignment="Left"/>
-                    <TextBlock Text="Upload an image that represents you in the universe" Foreground="#9F9FFF" FontStyle="Italic" FontSize="12"/>
-                    <TextBlock Text="{Binding UploadStatusMessage}" Foreground="#9F9FFF" FontStyle="Italic" FontSize="12" IsVisible="{Binding UploadStatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                </StackPanel>
-                </Grid>
+    <!-- Avatar Container -->
+    <Grid Grid.Column="0" 
+          Width="120" 
+          Height="120"
+          Margin="10,0,20,0">
+        
+        <!-- Circular Border with Background -->
+        <Border Width="120" 
+                Height="120" 
+                CornerRadius="60"
+                Background="#2A0F5B"
+                BorderBrush="#5D12D2"
+                BorderThickness="2"
+                ClipToBounds="True">
+            <!-- Image Content -->
+            <Panel>
+                <!-- Default avatar -->
+                <Image Source="avares://GalaxyMatchGUI/Assets/alien_profile.png"
+                       Width="150" 
+                       Height="150"
+                       IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"/>
+                
+                <!-- User avatar -->
+                <Image Source="{Binding AvatarImage}"
+                       IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Stretch"
+                       Stretch="UniformToFill"/>
+            </Panel>
+        </Border>
+        
+        <!-- Plus Button with fixed hover state -->
+        <Button Command="{Binding UploadImageCommand}"
+                Width="30" 
+                Height="30"
+                CornerRadius="15"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Margin="-15,-6,0,0"
+                Background="#7B2CBF"
+                BorderBrush="#9D4EDD"
+                BorderThickness="2">
+            <Button.Styles>
+                <Style Selector="Button:pointerover /template/ ContentPresenter">
+                    <Setter Property="Background" Value="#7804dc"/>
+                </Style>
+                <Style Selector="Button:pointerover">
+                    <Setter Property="BorderBrush" Value="#5D12D2"/>
+                    <Setter Property="Cursor" Value="Hand"/>
+                </Style>
+            </Button.Styles>
+            
+            <Button.Content>
+                <TextBlock Text="+"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Button.Content>
+        </Button>
+    </Grid>
+    
+    <!-- Right side content -->
+    <StackPanel Grid.Column="1" Spacing="10" VerticalAlignment="Center">
+        <TextBlock Text="Profile Image" Foreground="#CCCCFF" FontWeight="SemiBold"/>
+        <TextBlock Text="Click the + button to upload an image" 
+                   Foreground="#9F9FFF" 
+                   FontStyle="Italic" 
+                   FontSize="12"/>
+        <TextBlock Text="{Binding UploadStatusMessage}" 
+                   Foreground="#9F9FFF" 
+                   FontStyle="Italic" 
+                   FontSize="12" 
+                   IsVisible="{Binding UploadStatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+    </StackPanel>
+</Grid>
 
                 <!-- Form Content in a glowing panel -->
                 <Border CornerRadius="15" 
