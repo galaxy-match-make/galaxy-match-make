@@ -33,13 +33,13 @@ ADD COLUMN IF NOT EXISTS galactic_date_of_birth INT;
 
 
 ALTER TABLE profiles
-ADD CONSTRAINT IF NOT EXISTS fk_species;
+ADD CONSTRAINT IF NOT EXISTS fk_species FOREIGN KEY (species_id) REFERENCES species(id);
 
 ALTER TABLE profiles
-ADD CONSTRAINT IF NOT EXISTS fk_planet;
+ADD CONSTRAINT IF NOT EXISTS fk_planet FOREIGN KEY (planet_id) REFERENCES planets(id);
 
 ALTER TABLE profiles
-ADD CONSTRAINT IF NOT EXISTS fk_gender;
+ADD CONSTRAINT IF NOT EXISTS fk_gender FOREIGN KEY (gender_id) REFERENCES gender(id);
 
      
      
