@@ -6,6 +6,7 @@ namespace galaxy_match_make.Models;
 public class CharacteristicsDto
 {
     public int Id { get; set; }
-    public string CharacteristicsCategory { get; set; } = null!;
+    [ForeignKey("characteristic_categories_id")]
+    public int CharacteristicCategoriesId { get; set; }
     public string CharacteristicsName { get; set; } = null!;
 }

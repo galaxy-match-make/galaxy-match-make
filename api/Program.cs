@@ -51,22 +51,30 @@ builder.Services.AddSwaggerGen(options =>
 });
 builder.Services.AddSingleton<DapperContext>();
 
-builder.Services.AddScoped<IPlanetRepository, PlanetRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
 builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 builder.Services.AddScoped<IInteractionRepository, InteractionRepository>();
 builder.Services.AddScoped<IInterestRepository, InterestRepository>();
-builder.Services.AddScoped<ISpeciesRepository, SpeciesRepository>();
-builder.Services.AddScoped<IGenderRepository, GenderRepository>();
+
+builder.Services.AddScoped<IGenericRepository<CharacteristicCategoriesDto>, GenericRepository<CharacteristicCategoriesDto>>();
 
 builder.Services.AddScoped<IGenericRepository<CharacteristicsDto>, GenericRepository<CharacteristicsDto>>();
+builder.Services.AddScoped<IGenericService<CharacteristicsDto>, GenericService<CharacteristicsDto>>();
+builder.Services.AddScoped<ICharacteristicsService, CharacteristicsService>();
+
 builder.Services.AddScoped<IGenericRepository<ProfileAttributesDto>, GenericRepository<ProfileAttributesDto>>();
+builder.Services.AddScoped<IGenericService<ProfileAttributesDto>, GenericService<ProfileAttributesDto>>();
+builder.Services.AddScoped<IProfileAttributesService, ProfileAttributesService>();
+
 builder.Services.AddScoped<IGenericRepository<ProfilePreferencesDto>, GenericRepository<ProfilePreferencesDto>>();
+builder.Services.AddScoped<IGenericService<ProfilePreferencesDto>, GenericService<ProfilePreferencesDto>>();
+builder.Services.AddScoped<IProfilePreferencesService, ProfilePreferencesService>();
 
 builder.Services.AddScoped<IGenericRepository<ProfileDto>, GenericRepository<ProfileDto>>();
 builder.Services.AddScoped<IGenericService<ProfileDto>, GenericService<ProfileDto>>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
+
 
 builder.Services.AddScoped<GoogleAuthService>();
 builder.Services.AddHttpClient();

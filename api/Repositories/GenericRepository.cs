@@ -78,11 +78,17 @@ public class GenericRepository<T>: IGenericRepository<T> where T : class
             .Where(p => p.Name != _primaryKeyName)
             .ToList();
         
-        string columns = string.Join(", ", properties.Select(p => GetColumnNameFromProperty(p.Name)));
-        string parameters = string.Join(", ", properties.Select(p => 
-            p.PropertyType == typeof(string)
-                ? $"'@{p.GetValue(entity)}'"
-                : $"@{p.GetValue(entity)}"));
+        Dictionary<string, string> columnAndValues = new Dictionary<string, string>();
+        
+        properties.ForEach(prop =>
+        {
+            string columnName = GetColumnNameFromProperty(prop.Name);
+            string columnValue = $"@{prop.Name}";
+            columnAndValues.Add(columnName, columnValue);
+        });
+        
+        string columns = string.Join(", ", columnAndValues.Keys);
+        string parameters = string.Join(", ", columnAndValues.Values);
         
         string sql = $"INSERT INTO {_tableName} ({columns}) VALUES ({parameters}) RETURNING {_primaryKeyName};";
         

@@ -5,17 +5,18 @@ namespace galaxy_match_make.Services;
 
 public class ProfileService(
     IGenericRepository<ProfileDto> profileRepository, 
-    IGenericRepository<ProfileAttributesDto> profileAttributesRepository, 
-    IGenericRepository<ProfilePreferencesDto> profilePreferencesRepository) 
+    IProfileAttributesService profileAttributesService, 
+    IProfilePreferencesService profilePreferencesService) 
     : GenericService<ProfileDto>(profileRepository), IProfileService
 {
     public async Task<IEnumerable<ProfileDto>> GetPreferredProfiles(int currentProfileId)
     {
-        List<ProfilePreferencesDto> currentUserPreferences = (await profilePreferencesRepository
-            .GetByColumnValueAsync("profile_id", currentProfileId))
-                .ToList();
+        List<int> currentUserPreferencesCharacteristicIds = (await profilePreferencesService
+            .GetProfilePreferencesForProfileId(currentProfileId))
+            .Select(preference => preference.CharacteristicId)
+            .ToList();
 
-        if (!currentUserPreferences.Any())
+        if (!currentUserPreferencesCharacteristicIds.Any())
         {
             return [];
         }
@@ -28,18 +29,14 @@ public class ProfileService(
 
         foreach (ProfileDto otherProfile in allOtherProfiles)
         {
-            var otherProfileAttributes = await profileAttributesRepository.GetByColumnValueAsync("profile_id", otherProfile.Id);
+            List<int> otherProfileAttributesCharacteristicIds = (await profileAttributesService
+                    .GetProfilePreferencesForProfileId(otherProfile.Id))
+                    .Select(attribute => attribute.CharacteristicId)
+                    .ToList();
 
-            bool isPreferredProfile = true;
-            
-            foreach (ProfilePreferencesDto profilePreference in currentUserPreferences)
-            {
-                if (!otherProfileAttributes.Any(profileAttribute => profileAttribute.CharacteristicId == profilePreference.CharacteristicId))
-                {
-                    isPreferredProfile = false;
-                    break;
-                }
-            }
+            bool isPreferredProfile = currentUserPreferencesCharacteristicIds
+                .All(preferenceCharacteristicId =>
+                    otherProfileAttributesCharacteristicIds.Contains(preferenceCharacteristicId));
 
             if (isPreferredProfile)
             {
@@ -49,5 +46,4 @@ public class ProfileService(
 
         return preferredProfiles;
     }
-
 }

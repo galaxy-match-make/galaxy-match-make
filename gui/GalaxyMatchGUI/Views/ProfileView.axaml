@@ -6,15 +6,13 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:models="using:GalaxyMatchGUI.Models"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="700"
-        x:Class="GalaxyMatchGUI.Views.ProfileView"
+        mc:Ignorable="d"
+        d:DesignWidth="600" d:DesignHeight="800" x:Class="GalaxyMatchGUI.Views.ProfileView"
         x:CompileBindings="False"
-        Background="#0D0221">
-
-    <UserControl.Resources>
+        Background="#191437"> <UserControl.Resources>
         <conv:InterestSelectedConverter x:Key="InterestSelectedConverter"/>
     </UserControl.Resources>
-    
+
     <Design.DataContext>
         <vm:ProfileViewModel/>
     </Design.DataContext>
@@ -31,333 +29,210 @@
         </Style>
         <Style Selector="Button:pointerover">
             <Setter Property="RenderTransform" Value="scale(1.05)"/>
-            <Setter Property="Background" Value="#9921E8"/>
-        </Style>
+            <Setter Property="Background" Value="#A052DE"/> </Style>
         <Style Selector="ComboBox">
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Padding" Value="10,5"/>
-            <Setter Property="Background" Value="#2A0F5B"/>
-        </Style>
+            <Setter Property="Background" Value="#30195B"/> </Style>
         <Style Selector="TextBox">
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="Background" Value="#2A0F5B"/>
-            <Setter Property="Foreground" Value="#CCCCFF"/>
-        </Style>
+            <Setter Property="Background" Value="#30195B"/> <Setter Property="Foreground" Value="#E6E6FA"/> </Style>
+        <Style Selector="NumericUpDown">
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Background" Value="#30195B"/> <Setter Property="Foreground" Value="#E6E6FA"/> </Style>
     </UserControl.Styles>
 
-    <Grid>
-        <Canvas>
-            <!-- Space background with stars -->
-            <Ellipse Canvas.Left="40" Canvas.Top="100" Width="4" Height="4" Fill="#FFFFFF" Opacity="0.8"/>
-            <Ellipse Canvas.Left="120" Canvas.Top="80" Width="2" Height="2" Fill="#FFFFFF" Opacity="0.6"/>
-            <Ellipse Canvas.Left="200" Canvas.Top="150" Width="3" Height="3" Fill="#FFFFFF" Opacity="0.7"/>
-            <Ellipse Canvas.Left="300" Canvas.Top="200" Width="2" Height="2" Fill="#FFFFFF" Opacity="0.5"/>
-            <Ellipse Canvas.Left="50" Canvas.Top="300" Width="2" Height="2" Fill="#FFFFFF" Opacity="0.6"/>
-            <Ellipse Canvas.Left="250" Canvas.Top="350" Width="3" Height="3" Fill="#FFFFFF" Opacity="0.8"/>
-            <Ellipse Canvas.Left="350" Canvas.Top="120" Width="4" Height="4" Fill="#FFFFFF" Opacity="0.7"/>
-            <Ellipse Canvas.Left="150" Canvas.Top="400" Width="2" Height="2" Fill="#FFFFFF" Opacity="0.5"/>
-            <Ellipse Canvas.Left="320" Canvas.Top="450" Width="3" Height="3" Fill="#FFFFFF" Opacity="0.7"/>
-            <Ellipse Canvas.Left="80" Canvas.Top="500" Width="2" Height="2" Fill="#FFFFFF" Opacity="0.6"/>
-
-            <!-- Small planet in background -->
-            <Ellipse Canvas.Left="600" Canvas.Top="80" Width="30" Height="30" Opacity="0.6">
-                <Ellipse.Fill>
-                    <RadialGradientBrush>
-                        <GradientStop Color="#FF4D6E" Offset="0"/>
-                        <GradientStop Color="#B92B5C" Offset="1"/>
-                    </RadialGradientBrush>
-                </Ellipse.Fill>
-            </Ellipse>
+    <Border Padding="30" Margin="20" MaxWidth="540" HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Background="#1E1449" CornerRadius="20"> <Border.Effect>
+            <DropShadowEffect BlurRadius="20" Color="#000000" Opacity="0.4"/>
+        </Border.Effect>
             
-            <!-- Another small planet in background -->
-            <Ellipse Canvas.Left="100" Canvas.Top="550" Width="40" Height="40" Opacity="0.5">
-                <Ellipse.Fill>
-                    <RadialGradientBrush>
-                        <GradientStop Color="#4CC9F0" Offset="0"/>
-                        <GradientStop Color="#3F37C9" Offset="1"/>
-                    </RadialGradientBrush>
-                </Ellipse.Fill>
-            </Ellipse>
-        </Canvas>
-
-        <!-- Main Content -->
-        <ScrollViewer>
-            <StackPanel Margin="20" Spacing="15">
-                <!-- Header -->
-                <Border CornerRadius="15" Background="#1E0B45" Padding="20,15" Margin="0,0,0,10">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="15" Color="#000000" Opacity="0.5"/>
-                    </Border.Effect>
-                    <StackPanel>
-                        <TextBlock Text="{Binding IsEditMode, Converter={x:Static conv:BoolConverters.ToString}, ConverterParameter='Edit|Create'}"
-                                   Foreground="#CCCCFF"
-                                   FontSize="20"
-                                   FontWeight="SemiBold"
-                                   HorizontalAlignment="Center"/>
-                        <TextBlock Text="Your Cosmic Profile"
-                                   Foreground="#00FF9F"
-                                   FontSize="32"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Center">
-                            <TextBlock.Effect>
-                                <BlurEffect Radius="1"/>
-                            </TextBlock.Effect>
-                        </TextBlock>
-                        <TextBlock Text="Share your story with the galaxy"
-                                   Foreground="#9F9FFF"
-                                   FontSize="14"
-                                   FontStyle="Italic"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,10,0,0"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Loading indicator -->
-                <ProgressBar IsVisible="{Binding IsLoading}"
-                             IsIndeterminate="True"
-                             Height="4"
-                             Margin="40,0" />
-
-                <!-- Status message -->
-                <TextBlock Text="{Binding StatusMessage}"
-                           Foreground="#FF00FF"
-                           IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                           HorizontalAlignment="Center" 
-                           TextWrapping="Wrap"
-                           Margin="0,0,0,10"/>
-
-                <!-- Profile Avatar Section -->
-                <Grid ColumnDefinitions="Auto,*">
-                    <Border Grid.Column="0" 
-                            Width="120" Height="120" 
-                            CornerRadius="60" 
-                            Background="#2A0F5B" 
-                            Margin="10,0,20,0"
-                            ClipToBounds="True">
-                        <Panel>
-                            <!-- Default avatar image -->
-                            <Image Source="avares://GalaxyMatchGUI/Assets/alien_profile.png"
-                                  Width="100" Height="100"
-                                  IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-                                  HorizontalAlignment="Center"
-                                  VerticalAlignment="Center"/>
-                            
-                            <!-- User avatar if URL is provided -->
-                            <controls:AsyncImage Source="{Binding AvatarUrl}"
-                                      IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                      HorizontalAlignment="Stretch"
-                                      VerticalAlignment="Stretch"
-                                      Stretch="UniformToFill"/>
-                        </Panel>
-                    </Border>
-                    
-                    <StackPanel Grid.Column="1" Spacing="10" VerticalAlignment="Center">
-                        <TextBlock Text="Avatar URL:" Foreground="#CCCCFF" FontWeight="SemiBold"/>
-                        <TextBox Text="{Binding AvatarUrl}" Watermark="Enter URL to your cosmic portrait" Width="350" HorizontalAlignment="Left"/>
-                        <TextBlock Text="Use a URL to an image that represents you in the universe" Foreground="#9F9FFF" FontStyle="Italic" FontSize="12"/>
-                    </StackPanel>
-                </Grid>
-
-                <!-- Form Content in a glowing panel -->
-                <Border CornerRadius="15" 
-                        Background="#1E0B45" 
-                        Padding="20" 
-                        Margin="0,10"
-                        BorderBrush="#5D12D2"
-                        BorderThickness="1">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="20" Color="#5D12D2" Opacity="0.3"/>
-                    </Border.Effect>
-                    
-                    <StackPanel Spacing="15">
-                        <!-- Display Name -->
-                        <StackPanel>
-                            <TextBlock Text="Display Name:" Foreground="#CCCCFF" FontWeight="SemiBold"/>
-                            <TextBox Text="{Binding DisplayName}" Watermark="Enter your galactic identity" Margin="0,5,0,0"/>
-                        </StackPanel>
-                        
-                        <!-- Bio -->
-                        <StackPanel>
-                            <TextBlock Text="Bio:" Foreground="#CCCCFF" FontWeight="SemiBold"/>
-                            <TextBox Text="{Binding Bio}" 
-                                    Watermark="Share your story with potential matches" 
-                                    Height="100" 
-                                    TextWrapping="Wrap"
-                                    AcceptsReturn="True"
-                                    Margin="0,5,0,0"/>
-                        </StackPanel>
-                        
-                        <!-- Species -->
-                        <StackPanel>
-                            <TextBlock Text="Species:" Foreground="#CCCCFF" FontWeight="SemiBold"/>
-                            <ComboBox ItemsSource="{Binding Species}" 
-                                     SelectedItem="{Binding SelectedSpecies}"
-                                     HorizontalAlignment="Stretch"
-                                     Margin="0,5,0,0">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate x:DataType="models:Species">
-                                        <TextBlock Text="{Binding SpeciesName}" Foreground="#CCCCFF"/>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </StackPanel>
-                        
-                        <!-- Planet -->
-                        <StackPanel>
-                            <TextBlock Text="Home Planet:" Foreground="#CCCCFF" FontWeight="SemiBold"/>
-                            <ComboBox ItemsSource="{Binding Planets}" 
-                                     SelectedItem="{Binding SelectedPlanet}"
-                                     HorizontalAlignment="Stretch"
-                                     Margin="0,5,0,0">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate x:DataType="models:Planet">
-                                        <TextBlock Text="{Binding PlanetName}" Foreground="#CCCCFF"/>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </StackPanel>
-                        
-                        <!-- Gender -->
-                        <StackPanel>
-                            <TextBlock Text="Gender:" Foreground="#CCCCFF" FontWeight="SemiBold"/>
-                            <ComboBox ItemsSource="{Binding Genders}" 
-                                     SelectedItem="{Binding SelectedGender}"
-                                     HorizontalAlignment="Stretch"
-                                     Margin="0,5,0,0">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate x:DataType="models:Gender">
-                                        <TextBlock Text="{Binding GenderName}" Foreground="#CCCCFF"/>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </StackPanel>
-                        
-                        <!-- Height in Galactic Inches -->
-                        <StackPanel>
-                            <TextBlock Text="Height (in Galactic Inches):" Foreground="#CCCCFF" FontWeight="SemiBold"/>
-                            <NumericUpDown Value="{Binding HeightInGalacticInches}"
-                                         Minimum="0"
-                                         Maximum="1000"
-                                         Increment="0.1"
-                                         FormatString="F1"
-                                         HorizontalAlignment="Stretch"
-                                         Margin="0,5,0,0"/>
-                        </StackPanel>
-                        
-                        <!-- Galactic Date of Birth -->
-                        <StackPanel>
-                            <TextBlock Text="Galactic Date of Birth:" Foreground="#CCCCFF" FontWeight="SemiBold"/>
-                            <NumericUpDown Value="{Binding GalacticDateOfBirth}"
-                                         Minimum="0"
-                                         Maximum="10000"
-                                         Increment="1"
-                                         FormatString="F0"
-                                         HorizontalAlignment="Stretch"
-                                         Margin="0,5,0,0"/>
-                            <TextBlock Text="The standard Galactic Year format (current year is 8422)" 
-                                      Foreground="#9F9FFF" 
-                                      FontStyle="Italic" 
-                                      FontSize="12"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-                
-                <!-- Interests Section -->
-                <Border CornerRadius="15" 
-                        Background="#1E0B45" 
-                        Padding="20" 
-                        Margin="0,10"
-                        BorderBrush="#FF00FF"
-                        BorderThickness="1">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="15" Color="#FF00FF" Opacity="0.3"/>
-                    </Border.Effect>
-                    
-                    <StackPanel Spacing="10">
-                        <TextBlock Text="Cosmic Interests" 
-                                  Foreground="#FF00FF" 
-                                  FontSize="20" 
-                                  FontWeight="Bold"
-                                  HorizontalAlignment="Center"/>
-                        
-                        <TextBlock Text="Select your galactic passions (click to toggle)" 
-                                  Foreground="#9F9FFF" 
-                                  FontStyle="Italic" 
-                                  FontSize="12"
-                                  HorizontalAlignment="Center"
-                                  Margin="0,0,0,10"/>
-                        
-                        <ItemsControl ItemsSource="{Binding AllInterests}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Button Command="{Binding DataContext.ToggleInterestCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                           CommandParameter="{Binding}"
-                                           Margin="5">
-                                        <Button.Background>
-                                            <MultiBinding Converter="{StaticResource InterestSelectedConverter}">
-                                                <Binding Path="."/>
-                                                <Binding Path="DataContext.SelectedInterests" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
-                                            </MultiBinding>
-                                        </Button.Background>
-                                        <TextBlock Text="{Binding InterestName}" 
-                                                  Padding="10,5" 
-                                                  Foreground="White"/>
-                                    </Button>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </Border>
-                
-                <!-- Action Buttons -->
-                <StackPanel Orientation="Horizontal" Spacing="15" HorizontalAlignment="Center" Margin="0,15,0,30">
-                    <Button Command="{Binding CancelCommand}"
-                           Width="150"
-                           Height="45"
-                           Background="#4C1D95"
-                           IsEnabled="{Binding !IsLoading}">
-                        <TextBlock Text="Cancel" 
-                                  Foreground="White"
-                                  FontSize="16"
-                                  FontWeight="SemiBold"
-                                  HorizontalAlignment="Center" 
-                                  VerticalAlignment="Center"
-                                  />
-                    </Button>
-                    
-                    <Button Command="{Binding SaveProfileCommand}"
-                           Width="200"
-                           Height="45"
-                           IsEnabled="{Binding !IsLoading}">
-                        <Button.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                <GradientStop Color="#7B2CBF" Offset="0"/>
-                                <GradientStop Color="#9D4EDD" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Button.Background>
-                        <TextBlock Text="{Binding IsEditMode, Converter={x:Static conv:BoolConverters.ToString}, ConverterParameter='Update Profile|Save Profile'}" 
-                                  Foreground="White"
-                                  FontSize="16"
-                                  FontWeight="SemiBold"
-                                  HorizontalAlignment="Center" 
-                                  VerticalAlignment="Center"
-                                  />
-                    </Button>
+        <!-- Header -->
+        <StackPanel Spacing="20"> <Border CornerRadius="15" Background="#281A5E" Padding="20,15">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="10" Color="#000000" Opacity="0.3"/>
+                </Border.Effect>
+                <StackPanel Spacing="8">
+                    <TextBlock Text="{Binding IsEditMode, Converter={x:Static conv:BoolConverters.ToString}, ConverterParameter='Edit|Create'}"
+                               Foreground="#E6E6FA"
+                               FontSize="22"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="Your Cosmic Profile"
+                               Foreground="#00FA9A"
+                               FontSize="30" FontWeight="Bold"
+                               HorizontalAlignment="Center">
+                        <TextBlock.Effect>
+                            <BlurEffect Radius="1"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    <TextBlock Text="Share your story with the galaxy"
+                               Foreground="#B0E0E6"
+                               FontSize="13" FontStyle="Italic"
+                               HorizontalAlignment="Center"
+                               Margin="0,8,0,0"/>
                 </StackPanel>
-                
-                <!-- Footer -->
-                <TextBlock Text="© 2025 Intergalactic Dating Solutions"
-                           Foreground="#6D6A75"
-                           FontSize="10"
-                           HorizontalAlignment="Center"
-                           Margin="0,20,0,10"/>
+            </Border>
+
+            <ProgressBar IsVisible="{Binding IsLoading}"
+                         IsIndeterminate="True"
+                         Height="6"
+                         Margin="40,0" />
+
+            <TextBlock Text="{Binding StatusMessage}"
+                       Foreground="#FF69B4"
+                       IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,15"/>
+
+            <Grid ColumnDefinitions="Auto,*"  IsVisible="{Binding !IsLoading}">
+                <Border Grid.Column="0"
+                        Width="120" Height="120" CornerRadius="60" Background="#30195B"
+                        Margin="15,0,20,0" ClipToBounds="True">
+                    <Panel>
+                        <Image Source="avares://GalaxyMatchGUI/Assets/alien_profile.png"
+                              Width="100" Height="100"
+                              IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"/>
+
+                        <controls:AsyncImage Source="{Binding AvatarUrl}"
+                                  IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Stretch"
+                                  Stretch="UniformToFill"/>
+                    </Panel>
+                </Border>
+
+                <StackPanel Grid.Column="1" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="Avatar URL:" Foreground="#E6E6FA" FontWeight="SemiBold" FontSize="16"/>
+                    <TextBox Text="{Binding AvatarUrl}" Watermark="Enter URL" Width="320" HorizontalAlignment="Left"/>
+                    <TextBlock Text="Your cosmic portrait link" Foreground="#B0E0E6" FontStyle="Italic" FontSize="11"/>
+                </StackPanel>
+            </Grid>
+
+            <Border CornerRadius="15"
+                    Background="#281A5E"
+                    Padding="20" Margin="0,15"
+                    BorderBrush="#8A2BE2"
+                    BorderThickness="1"
+                    IsVisible="{Binding !IsLoading}">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="15" Color="#8A2BE2" Opacity="0.3"/>
+                </Border.Effect>
+
+                <StackPanel Spacing="15">
+                    <StackPanel>
+                        <TextBlock Text="Display Name:" Foreground="#E6E6FA" FontWeight="SemiBold" FontSize="16"/>
+                        <TextBox Text="{Binding DisplayName}" Watermark="Your galactic identity" Margin="0,5,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="Bio:" Foreground="#E6E6FA" FontWeight="SemiBold" FontSize="16"/>
+                        <TextBox Text="{Binding Bio}"
+                                Watermark="Share your story"
+                                Height="120" TextWrapping="Wrap"
+                                AcceptsReturn="True"
+                                Margin="0,5,0,0"/>
+                    </StackPanel>
+
+                    <Border CornerRadius="10"
+                            Background="#30195B"
+                            Padding="15"
+                            Margin="0,10">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Cosmic Interests"
+                                      Foreground="#FF69B4"
+                                      FontSize="18"
+                                      FontWeight="Bold"
+                                      HorizontalAlignment="Center"/>
+
+                            <TextBlock Text="Select your passions"
+                                      Foreground="#B0E0E6"
+                                      FontStyle="Italic"
+                                      FontSize="11"
+                                      HorizontalAlignment="Center"
+                                      Margin="0,0,0,8"/>
+
+                            <ItemsControl ItemsSource="{Binding AllInterests}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal">
+                                            <WrapPanel.Styles>
+                                                <Style Selector="Button">
+                                                    <Setter Property="Margin" Value="8"/>
+                                                </Style>
+                                            </WrapPanel.Styles>
+                                        </WrapPanel>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Command="{Binding DataContext.ToggleInterestCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}">
+                                            <Button.Background>
+                                                <MultiBinding Converter="{StaticResource InterestSelectedConverter}">
+                                                    <Binding Path="."/>
+                                                    <Binding Path="DataContext.SelectedInterests" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                                </MultiBinding>
+                                            </Button.Background>
+                                            <TextBlock Text="{Binding InterestName}"
+                                                      Padding="10,5"
+                                                      Foreground="White"
+                                                      FontSize="13"/>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" Spacing="15" HorizontalAlignment="Center" Margin="0,15,0,30"
+                        IsVisible="{Binding !IsLoading}">
+                <Button Command="{Binding CancelCommand}"
+                       Width="150"
+                       Height="40"
+                       Background="#551A8B"
+                       IsEnabled="{Binding !IsLoading}">
+                    <TextBlock Text="Cancel"
+                              Foreground="White"
+                              FontSize="15"
+                              FontWeight="SemiBold"               
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"/>
+                </Button>
+
+                <Button Command="{Binding SaveProfileCommand}"
+                       Width="150"
+                       Height="40"
+                       IsEnabled="{Binding !IsLoading}">
+                    <Button.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#8A2BE2" Offset="0"/>
+                            <GradientStop Color="#9400D3" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Button.Background>
+                    <TextBlock Text="{Binding IsEditMode, Converter={x:Static conv:BoolConverters.ToString}, ConverterParameter='Update|Save'}"
+                              Foreground="White"
+                              FontSize="15"
+                              FontWeight="SemiBold"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"/>
+                </Button>
             </StackPanel>
-        </ScrollViewer>
-    </Grid>
+
+            <TextBlock Text="© 2025 IDS"
+                       Foreground="#A9A9A9"
+                       FontSize="10"
+                       HorizontalAlignment="Center"
+                       Margin="0,15,0,10"/>
+        </StackPanel>
+    </Border>
+
 </UserControl>
