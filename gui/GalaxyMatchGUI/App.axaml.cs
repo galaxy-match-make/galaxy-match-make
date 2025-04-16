@@ -57,6 +57,7 @@ public partial class App : Application
 
             navigationService.RegisterView<MessageRoomViewModel, MessageRoomView>();
             navigationService.RegisterView<ProfileViewModel, ProfileView>();
+            navigationService.RegisterView<ViewOtherProfileViewModel, ViewOtherProfileView>();
             
             // Register navigation service in DI container
             services.AddSingleton<INavigationService>(navigationService);

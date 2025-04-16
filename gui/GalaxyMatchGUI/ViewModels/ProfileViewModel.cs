@@ -536,8 +536,9 @@ namespace GalaxyMatchGUI.ViewModels
         [RelayCommand]
         public void Cancel()
         {
-            // Navigate back to login/previous view
-            _navigationService?.NavigateBack();
+            NavigationService?.NavigateTo<MatchingViewModel>();
         }
+        
+        
     }
 }

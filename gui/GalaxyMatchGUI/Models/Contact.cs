@@ -23,24 +23,33 @@ public partial class Contact
     public string DisplayName { get; set; }
     public string AvatarUrl { get; set; }
 
-    public async Task AcceptRequest()
+    [RelayCommand]
+    public void AcceptRequest()
     {
-        await _interactionsViewModel?.AcceptRequestAsync(this);
-    }
-    
-    public async Task RejectRequest()
-    {
-        await _interactionsViewModel?.RejectRequestAsync(this);
-    }
-    
-    public async Task CancelRequest()
-    {
-        await _interactionsViewModel?.CancelRequestAsync(this);
+        _interactionsViewModel?.AcceptRequestAsync(this);
     }
     
     [RelayCommand]
-    private void ReactionClicked()
+    public void RejectRequest()
     {
-        _interactionsViewModel?.HandleReactionClick(this);
+        _interactionsViewModel?.RejectRequestAsync(this);
+    }
+    
+    [RelayCommand]
+    public void CancelRequest()
+    {
+        _interactionsViewModel?.CancelRequestAsync(this);
+    }
+    
+    [RelayCommand]
+    private void ShowMessages()
+    {
+        _interactionsViewModel?.ShowMessages(this);
+    }
+    
+    [RelayCommand]
+    private void ShowProfile()
+    {
+        _interactionsViewModel?.ShowProfile(this);
     }
 }
