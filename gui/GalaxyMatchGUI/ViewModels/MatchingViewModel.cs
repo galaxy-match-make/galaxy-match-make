@@ -172,11 +172,11 @@ public class MatchingViewModel : ViewModelBase
             DisplayName = CurrentProfile.DisplayName,
             Bio = CurrentProfile.Bio,
             AvatarUrl = CurrentProfile.AvatarUrl,
-            HeightInGalacticInches = CurrentProfile.HeightInGalacticInches,
-            GalacticDateOfBirth = CurrentProfile.GalacticDateOfBirth,
-            SelectedPlanet = CurrentProfile.Planet,
-            SelectedSpecies = CurrentProfile.Species,
-            SelectedGender = CurrentProfile.Gender
+            // HeightInGalacticInches = CurrentProfile.HeightInGalacticInches,
+            // GalacticDateOfBirth = CurrentProfile.GalacticDateOfBirth,
+            // SelectedPlanet = CurrentProfile.Planet,
+            // SelectedSpecies = CurrentProfile.Species,
+            // SelectedGender = CurrentProfile.Gender
         };
         
         // Navigate to the profile view
