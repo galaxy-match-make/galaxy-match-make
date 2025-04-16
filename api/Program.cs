@@ -22,6 +22,14 @@ builder.Services.AddAuthentication(options =>
 {
     options.Authority = "https://accounts.google.com";
     options.Audience = builder.Configuration["Google:ClientId"];
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine($"JWT Authentication failed: {context.Exception.Message}");
+            return Task.CompletedTask;
+        }
+    };
 });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -74,8 +82,6 @@ builder.Services.AddScoped<IProfileService, ProfileService>();
 
 builder.Services.AddScoped<GoogleAuthService>();
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<IMessageRepository, MessageRepository>();
-builder.Services.AddScoped<IInteractionRepository, InteractionRepository>();
 
 builder.Services.AddSingleton(sp =>
 {
