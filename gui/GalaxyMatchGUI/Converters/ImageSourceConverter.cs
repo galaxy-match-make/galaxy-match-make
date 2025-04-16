@@ -18,38 +18,29 @@ namespace GalaxyMatchGUI.Converters
         {
             if (value is string source)
             {
-                // Return null if the string is empty
                 if (string.IsNullOrEmpty(source))
                     return null;
 
                 try
                 {
-                    // Handle avares:// scheme for app resources
                     if (source.StartsWith("avares://"))
                     {
                         var uri = new Uri(source);
-                        // Use static AssetLoader instead of AvaloniaLocator
                         using var stream = AssetLoader.Open(uri);
                         return new Bitmap(stream);
                     }
-                    // Handle http:// and https:// URLs
                     else if (source.StartsWith("http://") || source.StartsWith("https://"))
                     {
-                        // Load URL asynchronously but return null initially
-                        // The image will update when the task completes
                         LoadFromWeb(source);
                         return null;
                     }
-                    // Handle base64 encoded images
                     else if (source.StartsWith("data:image"))
                     {
-                        // Parse and load the base64 data
                         return LoadFromBase64(source);
                     }
                 }
                 catch (Exception ex)
                 {
-                    // Log the exception and return null
                     Console.WriteLine($"Error loading image source: {ex.Message}");
                     return null;
                 }
@@ -71,9 +62,6 @@ namespace GalaxyMatchGUI.Converters
                 using var ms = new MemoryStream(bytes);
                 var bitmap = new Bitmap(ms);
                 
-                // Raise a property changed event or use a callback to update the UI
-                // This requires modifying our ViewModel to support this pattern
-                // For now we'll log the successful load
                 Console.WriteLine($"Successfully loaded image from URL: {url}");
             }
             catch (Exception ex)
@@ -86,7 +74,6 @@ namespace GalaxyMatchGUI.Converters
         {
             try
             {
-                // Extract the base64 data from the data URI
                 var base64Data = base64.Substring(base64.IndexOf(',') + 1);
                 var bytes = System.Convert.FromBase64String(base64Data);
                 

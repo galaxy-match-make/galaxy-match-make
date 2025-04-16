@@ -34,7 +34,6 @@ public partial class Contact : ObservableObject
         {
             if (SetProperty(ref _avatarUrl, value))
             {
-                // Load the image when the URL is set
                 _ = LoadAvatarImageAsync();
             }
         }
@@ -56,7 +55,6 @@ public partial class Contact : ObservableObject
 
         try
         {
-            // Extract the base64 part after the comma
             int commaIndex = AvatarUrl.IndexOf(',');
             if (commaIndex > 0)
             {

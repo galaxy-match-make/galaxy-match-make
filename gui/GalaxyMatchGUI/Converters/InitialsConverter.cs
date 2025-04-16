@@ -11,16 +11,13 @@ namespace GalaxyMatchGUI.Converters
         {
             if (value is string name && !string.IsNullOrWhiteSpace(name))
             {
-                // Split the name by spaces and get the first letter of each part
                 var nameParts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 if (nameParts.Length > 0)
                 {
-                    // If it's just a single name, return the first letter
                     if (nameParts.Length == 1)
                     {
                         return nameParts[0].Substring(0, 1).ToUpper();
                     }
-                    // If there are multiple name parts, return the first letter of first and last parts
                     else
                     {
                         return $"{nameParts[0].Substring(0, 1)}{nameParts[nameParts.Length - 1].Substring(0, 1)}".ToUpper();
@@ -28,7 +25,6 @@ namespace GalaxyMatchGUI.Converters
                 }
             }
             
-            // Default fallback value
             return "?";
         }
 

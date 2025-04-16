@@ -38,10 +38,8 @@ namespace GalaxyMatchGUI.Controls
                 {
                     Bitmap? bitmap = null;
                     
-                    // Handle web URLs
                     if (newSource.StartsWith("http://") || newSource.StartsWith("https://"))
                     {
-                        // Try to load from URL
                         var response = await _httpClient.GetAsync(newSource);
                         if (response.IsSuccessStatusCode)
                         {
@@ -50,10 +48,8 @@ namespace GalaxyMatchGUI.Controls
                             bitmap = new Bitmap(ms);
                         }
                     }
-                    // Handle local files or resource URLs
                     else if (newSource.StartsWith("avares://"))
                     {
-                        // Load from AvaloniaResources using the static AssetLoader class
                         try 
                         {
                             var uri = new Uri(newSource);
@@ -66,12 +62,9 @@ namespace GalaxyMatchGUI.Controls
                         }
                     }
                     
-                    // Update the source on the UI thread
                     if (bitmap != null)
                     {
-                        base.Source = bitmap; // Set the actual image
-                    }
-                }
+                        base.Source = bitmap;
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error loading image from {newSource}: {ex.Message}");

@@ -141,23 +141,19 @@ public class ProfileRepository : IProfileRepository
         return pendingMatches;
     }
 
-    // Fixed the async method to actually use await
     private async Task<IEnumerable<ProfileDto>> QueryProfiles(string sql, object? parameters = null)
     {
         var profileDictionary = new Dictionary<int, ProfileDto>();
         using var connection = _context.CreateConnection();
         
-        // Use QueryAsync instead of Query to make this truly asynchronous
         var profiles = await connection.QueryAsync<ProfileDto, SpeciesDto, PlanetDto, GenderDto, string, ProfileDto>(
                 sql,
                 (profile, species, planet, gender, userInterestsJson) =>
                 {
-                    // Handle null objects without setting read-only Id properties directly
                     profile.Species = species;
                     profile.Planet = planet;
                     profile.Gender = gender;
 
-                    // Initialize UserInterests if it's null
                     if (profile.UserInterests == null)
                         profile.UserInterests = new List<UserInterestsDto>();
 
