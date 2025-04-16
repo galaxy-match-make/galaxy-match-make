@@ -133,9 +133,13 @@ public partial class MatchingViewModel : ViewModelBase
             {
                 var currentUserId = JwtStorage.Instance.authDetails?.UserId;
                 var contactsConnected = await _interactionsViewModel.GetMessageContactsAsync();
+                var usersSentRequestsTo = await _interactionsViewModel.GetSentRequestContacts();
+
+                var requestsSent = usersSentRequestsTo.Select(request => request.UserId).ToList();
+
                 var matchedProfiles = contactsConnected.Select(message => message.UserId).ToList();
                 
-                _allProfiles = _allProfiles.Where(profile => profile.UserId != currentUserId && !matchedProfiles.Contains(profile.UserId)).ToList();
+                _allProfiles = _allProfiles.Where(profile => profile.UserId != currentUserId && !matchedProfiles.Contains(profile.UserId) && !requestsSent.Contains(profile.UserId)).ToList();
 
                 await ShowNextProfile();
             }
