@@ -101,7 +101,7 @@ jobs:
 
           echo "{" > $file
           echo '  "ConnectionStrings": {' >> $file
-          echo "    \"DefaultConnection\": \"Host=${{ secrets.HOST }};Port=5432;Database=${{secrets.TF_VAR_DB_NAME}};Username=${{secrets.TF_VAR_DB_PASSWORD}};Password=${{secrets.TF_VAR_DB_PASSWORD}}\"" >> $file
+          echo "    \"DefaultConnection\": \"Host=${{ secrets.AWS_RDS_ENDPOINT }};Port=5432;Database=${{secrets.TF_VAR_DB_NAME}};Username=${{secrets.TF_VAR_DB_PASSWORD}};Password=${{secrets.TF_VAR_DB_PASSWORD}}\"" >> $file
           echo "  }," >> $file
           echo '  "Google": {' >> $file
           echo "    \"ClientId\": \"${{ secrets.GOOGLE_CLIENT_ID }}\"," >> $file
