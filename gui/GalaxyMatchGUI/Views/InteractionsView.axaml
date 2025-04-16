@@ -243,8 +243,11 @@
                                                 <!-- Avatar -->
                                                 <Border Grid.Column="0" Width="50" Height="50" CornerRadius="25" Background="#2A0F5B"
                                                         BorderBrush="#5D12D2" BorderThickness="2" Margin="0,0,15,0">
+                                                    <Border.Clip>
+                                                        <EllipseGeometry RadiusX="25" RadiusY="25" Center="25,25"/>
+                                                    </Border.Clip>
                                                     <Image Source="{Binding AvatarImage, TargetNullValue='avares://GalaxyMatchGUI/Assets/default-avatar.png'}"
-                                                           Stretch="UniformToFill">
+                                                        Stretch="UniformToFill">
                                                         <Image.Effect>
                                                             <DropShadowEffect BlurRadius="8" Color="#5D12D2" Opacity="0.6"/>
                                                         </Image.Effect>
@@ -350,8 +353,11 @@
                                                 <!-- Avatar -->
                                                 <Border Grid.Column="0" Width="50" Height="50" CornerRadius="25" Background="#2A0F5B"
                                                         BorderBrush="#5D12D2" BorderThickness="2" Margin="0,0,15,0">
+                                                    <Border.Clip>
+                                                        <EllipseGeometry RadiusX="25" RadiusY="25" Center="25,25"/>
+                                                    </Border.Clip>
                                                     <Image Source="{Binding AvatarImage, TargetNullValue='avares://GalaxyMatchGUI/Assets/default-avatar.png'}"
-                                                           Stretch="UniformToFill">
+                                                        Stretch="UniformToFill">
                                                         <Image.Effect>
                                                             <DropShadowEffect BlurRadius="8" Color="#5D12D2" Opacity="0.6"/>
                                                         </Image.Effect>
