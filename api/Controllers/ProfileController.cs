@@ -82,23 +82,27 @@ namespace galaxy_match_make.Controllers
             {
                 return BadRequest("Profile data is required.");
             }
- 
+            
             var profileClaimToken = User.FindFirstValue(ClaimTypes.NameIdentifier);
- 
+            
             if (string.IsNullOrEmpty(profileClaimToken) || !Guid.TryParse(profileClaimToken, out Guid userId))
             {
                 return Unauthorized("User ID not found in token or invalid format");
             }
- 
-            try
+
+            ProfileDto profileDto = new ProfileDto()
             {
-                var createdProfile = await _profileRepository.CreateProfile(userId, profile);
-                return CreatedAtAction(nameof(GetProfileById), new { id = userId }, createdProfile);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Error creating profile: {ex.Message}");
-            }
+                UserId = userId,
+                DisplayName = profile.DisplayName,
+                Bio = profile.Bio,
+                AvatarUrl = profile.AvatarUrl
+            };
+
+            profileDto.Id = await _profileService.CreateAsync(profileDto);
+            
+            return Created("Profile", profileDto);
+            
+            // SAVE USER INTERESTS
         }
 
         [Authorize]

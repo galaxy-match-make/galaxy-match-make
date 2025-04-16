@@ -31,30 +31,6 @@ namespace GalaxyMatchGUI.ViewModels
         private string _avatarUrl = string.Empty;
 
         [ObservableProperty]
-        private float? _heightInGalacticInches;
-
-        [ObservableProperty]
-        private int? _galacticDateOfBirth;
-
-        [ObservableProperty]
-        private ObservableCollection<Planet> _planets = new();
-
-        [ObservableProperty]
-        private Planet? _selectedPlanet;
-
-        [ObservableProperty]
-        private ObservableCollection<Species> _species = new();
-
-        [ObservableProperty]
-        private Species? _selectedSpecies;
-
-        [ObservableProperty]
-        private ObservableCollection<Gender> _genders = new();
-
-        [ObservableProperty]
-        private Gender? _selectedGender;
-
-        [ObservableProperty]
         private ObservableCollection<Interest> _allInterests = new();
 
         [ObservableProperty]
@@ -103,9 +79,6 @@ namespace GalaxyMatchGUI.ViewModels
 
                 // Load planets, species, genders, and interests
                 await Task.WhenAll(
-                    LoadPlanets(),
-                    LoadSpecies(),
-                    LoadGenders(),
                     LoadInterests(),
                     LoadCurrentProfile()
                 );
@@ -142,18 +115,6 @@ namespace GalaxyMatchGUI.ViewModels
                         DisplayName = profile.DisplayName;
                         Bio = profile.Bio ?? string.Empty;
                         AvatarUrl = profile.AvatarUrl ?? string.Empty;
-                        HeightInGalacticInches = profile.HeightInGalacticInches;
-                        GalacticDateOfBirth = profile.GalacticDateOfBirth;
-                        
-                        // Set selected values
-                        if (profile.Planet != null && Planets.Any())
-                            SelectedPlanet = Planets.FirstOrDefault(p => p.Id == profile.PlanetId);
-                        
-                        if (profile.Species != null && Species.Any())
-                            SelectedSpecies = Species.FirstOrDefault(s => s.Id == profile.SpeciesId);
-                        
-                        if (profile.Gender != null && Genders.Any())
-                            SelectedGender = Genders.FirstOrDefault(g => g.Id == profile.GenderId);
                         
                         // Set selected interests
                         if (profile.UserInterests != null && profile.UserInterests.Any() && AllInterests.Any())
@@ -173,72 +134,6 @@ namespace GalaxyMatchGUI.ViewModels
             {
                 Console.WriteLine($"Error loading profile: {ex.Message}");
                 // No profile exists yet, that's okay for new users
-            }
-        }
-
-        private async Task LoadPlanets()
-        {
-            try
-            {
-                var response = await _httpClient.GetAsync($"{ApiBaseUrl}/api/Planets");
-                if (response.IsSuccessStatusCode)
-                {
-                    var planets = await response.Content.ReadFromJsonAsync<List<Planet>>();
-                    if (planets != null)
-                    {
-                        Planets = new ObservableCollection<Planet>(planets);
-                        if (Planets.Any())
-                            SelectedPlanet = Planets.First();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading planets: {ex.Message}");
-            }
-        }
-
-        private async Task LoadSpecies()
-        {
-            try
-            {
-                var response = await _httpClient.GetAsync($"{ApiBaseUrl}/api/Species");
-                if (response.IsSuccessStatusCode)
-                {
-                    var species = await response.Content.ReadFromJsonAsync<List<Species>>();
-                    if (species != null)
-                    {
-                        Species = new ObservableCollection<Species>(species);
-                        if (Species.Any())
-                            SelectedSpecies = Species.First();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading species: {ex.Message}");
-            }
-        }
-
-        private async Task LoadGenders()
-        {
-            try
-            {
-                var response = await _httpClient.GetAsync($"{ApiBaseUrl}/api/Gender");
-                if (response.IsSuccessStatusCode)
-                {
-                    var genders = await response.Content.ReadFromJsonAsync<List<Gender>>();
-                    if (genders != null)
-                    {
-                        Genders = new ObservableCollection<Gender>(genders);
-                        if (Genders.Any())
-                            SelectedGender = Genders.First();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading genders: {ex.Message}");
             }
         }
 
@@ -283,6 +178,12 @@ namespace GalaxyMatchGUI.ViewModels
                 StatusMessage = "Display name is required";
                 return;
             }
+            
+            if (string.IsNullOrWhiteSpace(Bio))
+            {
+                StatusMessage = "Display name is required";
+                return;
+            }
 
             IsLoading = true;
             StatusMessage = "Saving your cosmic profile...";
@@ -304,13 +205,7 @@ namespace GalaxyMatchGUI.ViewModels
                 {
                     DisplayName = DisplayName,
                     Bio = Bio,
-                    AvatarUrl = AvatarUrl,
-                    HeightInGalacticInches = HeightInGalacticInches,
-                    GalacticDateOfBirth = GalacticDateOfBirth,
-                    SpeciesId = SelectedSpecies?.Id,
-                    PlanetId = SelectedPlanet?.Id,
-                    GenderId = SelectedGender?.Id,
-                    UserInterestIds = SelectedInterests.Select(i => i.Id).ToList()
+                    AvatarUrl = AvatarUrl
                 };
 
                 HttpResponseMessage response;

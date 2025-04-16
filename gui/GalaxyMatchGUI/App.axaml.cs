@@ -62,7 +62,7 @@ public partial class App : Application
             ServiceProvider = services.BuildServiceProvider();
             
             // Navigate to login view
-            navigationService.NavigateTo<MatchingViewModel>();
+            navigationService.NavigateTo<LoginViewModel>();
         }
 
         base.OnFrameworkInitializationCompleted();

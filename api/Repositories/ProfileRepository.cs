@@ -13,10 +13,12 @@ namespace galaxy_match_make.Repositories;
 public class ProfileRepository : IProfileRepository
 {
     private readonly DapperContext _context;
+    private readonly IConfiguration _configuration;
 
-    public ProfileRepository(DapperContext context)
+    public ProfileRepository(DapperContext context, IConfiguration configuration)
     {
         _context = context;
+        _configuration = configuration;
     }
 
     public async Task<IEnumerable<ProfileDto>> GetAllProfiles()
@@ -48,12 +50,7 @@ public class ProfileRepository : IProfileRepository
                 UserId = id,
                 DisplayName = profile.DisplayName,
                 Bio = profile.Bio,
-                AvatarUrl = profile.AvatarUrl,
-                SpeciesId = profile.SpeciesId,
-                PlanetId = profile.PlanetId,
-                GenderId = profile.GenderId,
-                HeightInGalacticInches = profile.HeightInGalacticInches,
-                GalacticDateOfBirth = profile.GalacticDateOfBirth
+                AvatarUrl = profile.AvatarUrl
             }, transaction);
 
             var deleteInterestsSql = "DELETE FROM user_interests WHERE user_id = @UserId;";
@@ -89,7 +86,7 @@ public class ProfileRepository : IProfileRepository
     {
         var sql = GetUpsertProfileSql(false);
 
-        using var connection = _context.CreateConnection();
+        using var connection = new NpgsqlConnection(_configuration.GetConnectionString("DefaultConnection"));;
         using var transaction = connection.BeginTransaction();
 
         try
@@ -99,12 +96,7 @@ public class ProfileRepository : IProfileRepository
                 UserId = id,
                 DisplayName = profile.DisplayName,
                 Bio = profile.Bio,
-                AvatarUrl = profile.AvatarUrl,
-                SpeciesId = profile.SpeciesId,
-                PlanetId = profile.PlanetId,
-                GenderId = profile.GenderId,
-                HeightInGalacticInches = profile.HeightInGalacticInches,
-                GalacticDateOfBirth = profile.GalacticDateOfBirth
+                AvatarUrl = profile.AvatarUrl
             }, transaction);
 
             if (profile.UserInterestIds != null && profile.UserInterestIds.Any())
@@ -148,27 +140,22 @@ public class ProfileRepository : IProfileRepository
         using var connection = _context.CreateConnection();
         
         // Use QueryAsync instead of Query to make this truly asynchronous
-        var profiles = await connection.QueryAsync<ProfileDto, SpeciesDto, PlanetDto, GenderDto, string, ProfileDto>(
+        var profiles = await connection.QueryAsync<ProfileDto, string, ProfileDto>(
                 sql,
-                (profile, species, planet, gender, userInterestsJson) =>
+                (profile, userInterestsJson) =>
                 {
-                    // Handle null objects without setting read-only Id properties directly
-                    profile.Species = species;
-                    profile.Planet = planet;
-                    profile.Gender = gender;
-
                     // Initialize UserInterests if it's null
-                    if (profile.UserInterests == null)
-                        profile.UserInterests = new List<UserInterestsDto>();
-
-                    if (!string.IsNullOrEmpty(userInterestsJson))
-                    {
-                        profile.UserInterests = JsonSerializer.Deserialize<List<UserInterestsDto>>(userInterestsJson);
-                    }
-                    else
-                    {
-                        profile.UserInterests = new List<UserInterestsDto>();
-                    }
+                    // if (profile.UserInterests == null)
+                    //     profile.UserInterests = new List<UserInterestsDto>();
+                    //
+                    // if (!string.IsNullOrEmpty(userInterestsJson))
+                    // {
+                    //     profile.UserInterests = JsonSerializer.Deserialize<List<UserInterestsDto>>(userInterestsJson);
+                    // }
+                    // else
+                    // {
+                    //     profile.UserInterests = new List<UserInterestsDto>();
+                    // }
 
                     profileDictionary[profile.Id] = profile;
                     return profile;
@@ -228,18 +215,7 @@ public class ProfileRepository : IProfileRepository
                 p.display_name,
                 p.bio,
                 p.avatar_url,
-                p.height_in_galactic_inches,
-                p.galactic_date_of_birth,
-    
-                s.id,
-                s.species_name,
-    
-                pl.id,
-                pl.planet_name,
-    
-                g.id,
-                g.gender,
-    
+                
                 -- Aggregated interests
                 json_agg(
                     jsonb_build_object(
@@ -257,9 +233,6 @@ public class ProfileRepository : IProfileRepository
             }
 
             sql += @"
-                LEFT JOIN species s ON p.species_id = s.id
-                LEFT JOIN planets pl ON p.planet_id = pl.id
-                LEFT JOIN genders g ON p.gender_id = g.id
                 LEFT JOIN user_interests ui ON p.user_id = ui.user_id
                 LEFT JOIN interests i ON ui.interest_id = i.id";
 
@@ -282,11 +255,7 @@ public class ProfileRepository : IProfileRepository
 
         sql += @"
             GROUP BY 
-            p.id, p.user_id, p.display_name, p.bio, p.avatar_url, 
-            p.height_in_galactic_inches, p.galactic_date_of_birth,
-            s.id, s.species_name,
-            pl.id, pl.planet_name,
-            g.id, g.gender;";
+            p.id, p.user_id, p.display_name, p.bio, p.avatar_url;";
 
         return sql;
     }
@@ -297,18 +266,13 @@ public class ProfileRepository : IProfileRepository
             UPDATE profiles 
             SET display_name = @DisplayName, 
                 bio = @Bio, 
-                avatar_url = @AvatarUrl, 
-                species_id = @SpeciesId, 
-                planet_id = @PlanetId, 
-                gender_id = @GenderId, 
-                height_in_galactic_inches = @HeightInGalacticInches, 
-                galactic_date_of_birth = @GalacticDateOfBirth
+                avatar_url = @AvatarUrl
             WHERE user_id = @UserId
             RETURNING id;" : @"
             INSERT INTO profiles 
-            (user_id, display_name, bio, avatar_url, species_id, planet_id, gender_id, height_in_galactic_inches, galactic_date_of_birth)
+            (user_id, display_name, bio, avatar_url)
             VALUES 
-            (@UserId, @DisplayName, @Bio, @AvatarUrl, @SpeciesId, @PlanetId, @GenderId, @HeightInGalacticInches, @GalacticDateOfBirth)
+            (@UserId, @DisplayName, @Bio, @AvatarUrl)
             RETURNING id;";
     }
     

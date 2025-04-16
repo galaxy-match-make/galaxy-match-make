@@ -9,13 +9,14 @@
         Icon="/Assets/avalonia-logo.ico"
         Title="Galaxy Match"
         WindowStartupLocation="CenterScreen">
+    <ScrollViewer>
+        <Design.DataContext>
+            <vm:MainWindowViewModel/>
+        </Design.DataContext>
 
-    <Design.DataContext>
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
-
-    <DockPanel>
-        <!-- Content area with navigation support -->
-        <ContentControl x:Name="ContentArea" />
-    </DockPanel>
+        <DockPanel>
+            <!-- Content area with navigation support -->
+            <ContentControl x:Name="ContentArea" />
+        </DockPanel>
+    </ScrollViewer>
 </Window>
