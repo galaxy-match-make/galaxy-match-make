@@ -43,7 +43,7 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "galaxy-main-vpc"
+    Name = "galaxy-main-vpc-${random_id.suffix.hex}"
   }
 }
 
@@ -51,7 +51,7 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "galaxy-igw"
+    Name = "galaxy-igw-${random_id.suffix.hex}"
   }
 }
 
@@ -64,7 +64,7 @@ resource "aws_route_table" "rt" {
   }
 
   tags = {
-    Name = "galaxy-rt"
+    Name = "galaxy-rt-${random_id.suffix.hex}"
   }
 }
 
@@ -75,7 +75,7 @@ resource "aws_subnet" "subnet_az1" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "subnet-az1"
+    Name = "subnet-az1-${random_id.suffix.hex}"
   }
 }
 
@@ -86,7 +86,7 @@ resource "aws_subnet" "subnet_az2" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "subnet-az2"
+    Name = "subnet-az2-${random_id.suffix.hex}"
   }
 }
 
@@ -97,7 +97,7 @@ resource "aws_subnet" "subnet_az3" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "subnet-az3"
+    Name = "subnet-az3-${random_id.suffix.hex}"
   }
 }
 
@@ -152,7 +152,7 @@ resource "aws_db_instance" "galaxy-matchdb" {
   engine               = "postgres"
   engine_version       = "17.4"
   instance_class       = "db.t3.micro"
-  identifier           = "galaxy-match-db"
+  identifier           = "galaxy-match-db-${random_id.suffix.hex}"
   username             = var.db_username
   password             = var.db_password
   skip_final_snapshot  = true
@@ -168,4 +168,22 @@ resource "postgresql_database" "db" {
   owner     = var.db_username
 
   depends_on = [aws_db_instance.galaxy-matchdb]
+}
+
+# Generate a dynamic connection string output
+output "db_connection_string" {
+  value       = "Host=${aws_db_instance.galaxy-matchdb.endpoint};Port=5432;Database=${postgresql_database.db.name};Username=${var.db_username};Password=${var.db_password};Pooling=true;Ssl Mode=Require;"
+  description = "PostgreSQL connection string"
+  sensitive   = true
+}
+
+# Output the PostgreSQL endpoint for use in the unified workflow
+output "postgresql_server_endpoint" {
+  value       = aws_db_instance.galaxy-matchdb.endpoint
+  description = "The endpoint of the PostgreSQL server"
+}
+
+output "random_suffix" {
+  value       = random_id.suffix.hex
+  description = "Random suffix used for resource names"
 }

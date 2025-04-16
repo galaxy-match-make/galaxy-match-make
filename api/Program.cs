@@ -3,10 +3,16 @@ using galaxy_match_make.Models;
 using galaxy_match_make.Repositories;
 using galaxy_match_make.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Amazon.SecretsManager;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure services based on environment
+string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+
 // Add services to the container.
+builder.Services.AddAppConfiguration(builder.Configuration);
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

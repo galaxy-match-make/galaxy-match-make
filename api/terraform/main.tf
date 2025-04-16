@@ -1,103 +1,117 @@
-resource "aws_iam_role" "github_actions" {
-  name = "CSharpLevelUpActionsRole-${var.github_org}-${var.repository_name}"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Federated = coalesce(aws_iam_openid_connect_provider.github[0].arn, var.oidc_provider_arn)
-        }
-        Action = "sts:AssumeRoleWithWebIdentity"
-        Condition = {
-          StringEquals = {
-            "token.actions.githubusercontent.com:aud" = var.oidc_audience
-          }
-          StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:${var.github_org}/${var.repository_name}:*"
-          }
-        }
-      },
-    ]
-  })
-
-  tags = {
-    GitHubOrg      = var.github_org
-    RepositoryName = var.repository_name
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+  backend "s3" {
+    bucket = "galaxy-terraform-prod-af-south-1"
+    key    = "api/terraform/galaxy-api.tfstate"
+    region = "af-south-1"
   }
 }
 
-resource "aws_iam_policy_attachment" "github_actions_policy_attachment" {
-  name       = "CSharpLevelUpActionsPolicyAttachment"
-  roles      = [aws_iam_role.github_actions.name]
-  policy_arn = "arn:aws:iam::aws:policy/EC2InstanceProfileForImageBuilderECRContainerBuilds"
+provider "aws" {
+  region = "af-south-1"
 }
 
-resource "aws_iam_openid_connect_provider" "github" {
-  count        = var.oidc_provider_arn == "" ? 1 : 0
-  url          = "https://token.actions.githubusercontent.com"
-  client_id_list = ["sts.amazonaws.com"]
-  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+# Random suffix for unique resource names
+resource "random_id" "suffix" {
+  byte_length = 4
 }
 
-resource "aws_vpc" "csharp_levelup_vpc" {
-  cidr_block = "10.0.0.0/16"
+# Define variables
+variable "environment" {
+  description = "The environment (dev, test, prod)"
+  default     = "dev"
+}
+
+variable "app_name" {
+  description = "The name of the application"
+  default     = "galaxy-match-make"
+}
+
+# Create VPC and networking infrastructure
+resource "aws_vpc" "api_vpc" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
   tags = {
-    Name = "CSharpLevelUpVPC"
+    Name = "${var.app_name}-vpc-${var.environment}-${random_id.suffix.hex}"
   }
 }
 
-resource "aws_subnet" "csharp_levelup_subnet" {
-  vpc_id            = aws_vpc.csharp_levelup_vpc.id
+resource "aws_subnet" "public_subnet_1" {
+  vpc_id            = aws_vpc.api_vpc.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "af-south-1a"
-  map_public_ip_on_launch = true
+
   tags = {
-    Name = "CSharpLevelUpSubnet"
+    Name = "${var.app_name}-public-subnet-1-${var.environment}-${random_id.suffix.hex}"
   }
 }
 
-resource "aws_internet_gateway" "csharp_levelup_igw" {
-  vpc_id = aws_vpc.csharp_levelup_vpc.id
+resource "aws_subnet" "public_subnet_2" {
+  vpc_id            = aws_vpc.api_vpc.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "af-south-1b"
+
   tags = {
-    Name = "CSharpLevelUpIGW"
+    Name = "${var.app_name}-public-subnet-2-${var.environment}-${random_id.suffix.hex}"
   }
 }
 
-resource "aws_route_table" "csharp_levelup_rt" {
-  vpc_id = aws_vpc.csharp_levelup_vpc.id
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.api_vpc.id
+
+  tags = {
+    Name = "${var.app_name}-igw-${var.environment}"
+  }
+}
+
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.api_vpc.id
+
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.csharp_levelup_igw.id
+    gateway_id = aws_internet_gateway.igw.id
   }
+
   tags = {
-    Name = "CSharpLevelUpRouteTable"
+    Name = "${var.app_name}-public-rt-${var.environment}"
   }
 }
 
-resource "aws_route_table_association" "csharp_levelup_rta" {
-  subnet_id      = aws_subnet.csharp_levelup_subnet.id
-  route_table_id = aws_route_table.csharp_levelup_rt.id
+resource "aws_route_table_association" "public_subnet_1_association" {
+  subnet_id      = aws_subnet.public_subnet_1.id
+  route_table_id = aws_route_table.public_rt.id
 }
 
-resource "aws_security_group" "csharp_levelup_sg" {
-  name_prefix = "csharp-levelup-sg-"
-  vpc_id      = aws_vpc.csharp_levelup_vpc.id
+resource "aws_route_table_association" "public_subnet_2_association" {
+  subnet_id      = aws_subnet.public_subnet_2.id
+  route_table_id = aws_route_table.public_rt.id
+}
+
+# Security Group for API
+resource "aws_security_group" "api_sg" {
+  name        = "${var.app_name}-api-sg-${var.environment}-${random_id.suffix.hex}"
+  description = "Security group for API"
+  vpc_id      = aws_vpc.api_vpc.id
 
   ingress {
-    from_port   = 22
-    to_port     = 22
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow SSH access"
   }
 
   ingress {
-    from_port   = 8080
-    to_port     = 8080
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow HTTP traffic on port 8080"
   }
 
   egress {
@@ -108,145 +122,178 @@ resource "aws_security_group" "csharp_levelup_sg" {
   }
 
   tags = {
-    Name = "CSharpLevelUpSecurityGroup"
+    Name = "${var.app_name}-api-sg-${var.environment}-${random_id.suffix.hex}"
   }
 }
 
-resource "aws_key_pair" "csharp_levelup_key" {
-  key_name   = "csharp-levelup-key"
-  public_key = var.ec2_public_key
-}
+# ECR Repository
+resource "aws_ecr_repository" "api_ecr" {
+  name                 = "${var.app_name}-api-${var.environment}-${random_id.suffix.hex}"
+  image_tag_mutability = "MUTABLE"
 
-resource "aws_instance" "csharp_levelup_instance" {
-  ami                    = data.aws_ami.amazon_linux_latest.id
-  instance_type          = "t3.micro"
-  key_name               = aws_key_pair.csharp_levelup_key.key_name
-  vpc_security_group_ids = [aws_security_group.csharp_levelup_sg.id]
-  subnet_id              = aws_subnet.csharp_levelup_subnet.id
-  iam_instance_profile   = aws_iam_instance_profile.csharp_levelup_instance_profile.name
-  root_block_device {
-    volume_size = 24
+  image_scanning_configuration {
+    scan_on_push = true
   }
-
-  user_data = <<-EOF
-              #!/bin/bash
-              # Update package list
-              sudo yum update -y
-              # Install Docker
-              sudo amazon-linux-extras enable docker
-              sudo yum install -y docker
-              # Start and enable Docker service
-              sudo systemctl start docker
-              sudo systemctl enable docker
-              # Add EC2 user to Docker group (optional, allows non-root users to run Docker)
-              sudo usermod -aG docker ec2-user
-              # Print Docker version to verify installation
-              docker --version
-              EOF
 
   tags = {
-    Name = "CSharpLevelUpEC2"
+    Name = "${var.app_name}-ecr-${var.environment}-${random_id.suffix.hex}"
   }
 }
 
-resource "aws_iam_role" "csharp_levelup_instance_role" {
-  name_prefix        = "CSharpLevelUpEC2Role-"
+# EC2 Instance Profile Role
+resource "aws_iam_role" "ec2_role" {
+  name = "${var.app_name}-ec2-role-${var.environment}-${random_id.suffix.hex}"
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
         Action = "sts:AssumeRole"
-        Effect   = "Allow"
+        Effect = "Allow"
         Principal = {
           Service = "ec2.amazonaws.com"
         }
-      },
+      }
     ]
   })
 
   tags = {
-    Name = "CSharpLevelUpEC2Role"
+    Name = "${var.app_name}-ec2-role-${var.environment}-${random_id.suffix.hex}"
   }
 }
 
-resource "aws_iam_role_policy_attachment" "csharp_levelup_instance_role_policy_attachment" {
-  role       = aws_iam_role.csharp_levelup_instance_role.name
-  policy_arn = "arn:aws:iam::aws:policy/EC2InstanceProfileForImageBuilderECRContainerBuilds"
+# Attach policies to the EC2 role
+resource "aws_iam_role_policy_attachment" "ecr_read_policy" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonECR-FullAccess"
 }
 
-resource "aws_iam_instance_profile" "csharp_levelup_instance_profile" {
-  name_prefix = "CSharpLevelUpEC2Profile-"
-  role        = aws_iam_role.csharp_levelup_instance_role.name
+resource "aws_iam_role_policy_attachment" "secrets_manager_policy" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
 }
 
-resource "aws_ecr_repository" "csharp_levelup_repo" {
-  name               = "csharp-levelup-repo"
-  image_tag_mutability = "MUTABLE"
-  image_scanning_configuration {
-    scan_on_push = false
-  }
+# Create instance profile from role
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "${var.app_name}-ec2-profile-${var.environment}-${random_id.suffix.hex}"
+  role = aws_iam_role.ec2_role.name
+}
+
+# AWS Secrets Manager for storing configuration
+resource "aws_secretsmanager_secret" "db_connection" {
+  name        = "ConnectionStrings/DefaultConnection-${var.environment}-${random_id.suffix.hex}"
+  description = "Database connection string for ${var.app_name}"
+
+  recovery_window_in_days = 0  # Set to 0 for easier testing, use 7+ for production
+
   tags = {
-    Name        = "csharp-levelup-repo"
-    Environment = "dev"
+    Environment = var.environment
+    Application = var.app_name
   }
 }
 
-data "aws_ami" "amazon_linux_latest" {
-  most_recent = true
-  owners      = ["amazon"]
+resource "aws_secretsmanager_secret" "google_client_id" {
+  name        = "Google/ClientId-${var.environment}-${random_id.suffix.hex}"
+  description = "Google OAuth Client ID for ${var.app_name}"
 
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
-  }
+  recovery_window_in_days = 0  # Set to 0 for easier testing, use 7+ for production
 
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
+  tags = {
+    Environment = var.environment
+    Application = var.app_name
   }
 }
 
-data "aws_region" "current" {}
-data "aws_caller_identity" "current" {}
+resource "aws_secretsmanager_secret" "google_client_secret" {
+  name        = "Google/ClientSecret-${var.environment}-${random_id.suffix.hex}"
+  description = "Google OAuth Client Secret for ${var.app_name}"
 
-variable "github_org" {
-  type        = string
-  description = "Name of GitHub organization/user (case sensitive)"
+  recovery_window_in_days = 0  # Set to 0 for easier testing, use 7+ for production
+
+  tags = {
+    Environment = var.environment
+    Application = var.app_name
+  }
 }
 
-variable "repository_name" {
-  type        = string
-  description = "Name of GitHub repository (case sensitive)"
+resource "aws_secretsmanager_secret" "google_redirect_uri" {
+  name        = "Google/RedirectUri-${var.environment}-${random_id.suffix.hex}"
+  description = "Google OAuth Redirect URI for ${var.app_name}"
+
+  recovery_window_in_days = 0  # Set to 0 for easier testing, use 7+ for production
+
+  tags = {
+    Environment = var.environment
+    Application = var.app_name
+  }
 }
 
-variable "oidc_provider_arn" {
-  type        = string
-  description = "Arn for the GitHub OIDC Provider."
-  default     = ""
+# EC2 Instance for API
+resource "aws_instance" "api_instance" {
+  ami                    = "ami-0bbb14f724a8621e0"  # Amazon Linux 2023 in af-south-1
+  instance_type          = "t3.small"
+  subnet_id              = aws_subnet.public_subnet_1.id
+  vpc_security_group_ids = [aws_security_group.api_sg.id]
+  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
+  associate_public_ip_address = true
+  
+  user_data = <<-EOF
+              #!/bin/bash
+              # Update and install Docker
+              dnf update -y
+              dnf install -y docker
+              systemctl start docker
+              systemctl enable docker
+              
+              # Install AWS CLI
+              dnf install -y unzip
+              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              unzip awscliv2.zip
+              ./aws/install
+              
+              # Set environment variables
+              echo "ASPNETCORE_ENVIRONMENT=Production" >> /etc/environment
+              echo "AWS_REGION=af-south-1" >> /etc/environment
+              echo "AWS_SECRET_PREFIX=${random_id.suffix.hex}" >> /etc/environment
+              
+              # Reload environment variables
+              source /etc/environment
+              
+              # Pull docker image from ECR
+              aws ecr get-login-password --region af-south-1 | docker login --username AWS --password-stdin ${aws_ecr_repository.api_ecr.repository_url}
+              docker pull ${aws_ecr_repository.api_ecr.repository_url}:latest
+              
+              # Run the container
+              docker run -d -p 80:80 \
+                --name galaxy-api \
+                -e ASPNETCORE_ENVIRONMENT=Production \
+                -e AWS_REGION=af-south-1 \
+                -e AWS_SECRET_PREFIX=${random_id.suffix.hex} \
+                ${aws_ecr_repository.api_ecr.repository_url}:latest
+              EOF
+
+  tags = {
+    Name = "${var.app_name}-instance-${var.environment}-${random_id.suffix.hex}"
+  }
 }
 
-variable "oidc_audience" {
-  type        = string
-  description = "Audience supplied to configure-aws-credentials."
-  default     = "sts.amazonaws.com"
+# Outputs
+output "api_instance_public_ip" {
+  value       = aws_instance.api_instance.public_ip
+  description = "Public IP of the API EC2 instance"
 }
 
-variable "ec2_public_key" {
-  type        = string
-  description = "Your SSH public key"
-}
-
-output "role_arn" {
-  value       = aws_iam_role.github_actions.arn
-  description = "ARN of the created IAM Role"
-}
-
-output "instance_public_ip" {
-  value       = aws_instance.csharp_levelup_instance.public_ip
-  description = "Public IP address of the EC2 instance"
+output "api_instance_public_dns" {
+  value       = aws_instance.api_instance.public_dns
+  description = "Public DNS of the API EC2 instance"
 }
 
 output "ecr_repository_url" {
-  value       = aws_ecr_repository.csharp_levelup_repo.repository_url
+  value       = aws_ecr_repository.api_ecr.repository_url
   description = "URL of the ECR repository"
+}
+
+output "random_suffix" {
+  value       = random_id.suffix.hex
+  description = "Random suffix used for resource names"
 }

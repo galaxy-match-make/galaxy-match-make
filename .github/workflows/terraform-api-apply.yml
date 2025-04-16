@@ -1,21 +1,24 @@
-name: Apply API Terraform and Set Variables/Secrets
+name: Unified Terraform Apply
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+      - peo/deply-api
 
 jobs:
   terraform:
     name: Apply Infrastructure
     runs-on: ubuntu-latest
     outputs:
-      instance_ip: ${{ steps.terraform_output.outputs.instance_public_ip }}
-      role_arn: ${{ steps.terraform_output.outputs.role_arn }}
-      ecr_repo_url: ${{ steps.terraform_output.outputs.ecr_repository_url }}
+      api_instance_dns: ${{ steps.terraform_api_output.outputs.api_instance_public_dns }}
+      ecr_repository_url: ${{ steps.terraform_api_output.outputs.ecr_repository_url }}
+      db_endpoint: ${{ steps.terraform_backend_output.outputs.postgresql_server_endpoint }}
+      db_connection_string: ${{ steps.terraform_backend_output.outputs.db_connection_string }}
+      api_suffix: ${{ steps.terraform_api_output.outputs.random_suffix }}
+      backend_suffix: ${{ steps.terraform_backend_output.outputs.random_suffix }}
     
-    defaults:
-      run:
-        working-directory: api/terraform
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -26,70 +29,138 @@ jobs:
           terraform_version: ">= 1.0.0"
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: af-south-1
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-
-      - name: Terraform Init
-        id: init
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-duration-seconds: 1200
+          role-session-name: GithubActionsSession
+          
+      # Apply Backend infrastructure first 
+      - name: Terraform Init (Backend)
+        id: init_backend
         run: terraform init
+        working-directory: backend/terraform
 
-      - name: Terraform Plan
-        id: plan
-        run: terraform plan -no-color
-
-      - name: Terraform Apply
-        id: apply
-        run: terraform apply -auto-approve -no-color
-
-      - name: Output Terraform Variables
-        id: terraform_output
+      - name: Terraform Plan (Backend)
+        id: plan_backend
         run: |
-          echo "instance_public_ip=$(terraform output -json instance_public_ip | jq -r '.')" >> $GITHUB_OUTPUT
-          echo "role_arn=$(terraform output -json role_arn | jq -r '.')" >> $GITHUB_OUTPUT
-          echo "ecr_repository_url=$(terraform output -json ecr_repository_url | jq -r '.')" >> $GITHUB_OUTPUT
+          terraform plan \
+            -var="db_username=${{ secrets.DB_USERNAME }}" \
+            -var="db_password=${{ secrets.DB_PASSWORD }}" \
+            -var="db_name=galaxymatchdb" \
+            -no-color
+        working-directory: backend/terraform
 
-  set_variables_secrets:
-    name: Set Repository Variables and Secrets
+      - name: Terraform Apply (Backend)
+        id: apply_backend
+        run: |
+          terraform apply -auto-approve \
+            -var="db_username=${{ secrets.DB_USERNAME }}" \
+            -var="db_password=${{ secrets.DB_PASSWORD }}" \
+            -var="db_name=galaxymatchdb" \
+            -no-color
+        working-directory: backend/terraform
+      
+      - name: Get Backend Outputs
+        id: terraform_backend_output
+        run: |
+          echo "postgresql_server_endpoint=$(terraform output -raw postgresql_server_endpoint)" >> $GITHUB_OUTPUT
+          echo "db_connection_string=$(terraform output -raw db_connection_string)" >> $GITHUB_OUTPUT
+          echo "random_suffix=$(terraform output -raw random_suffix)" >> $GITHUB_OUTPUT
+        working-directory: backend/terraform
+        
+      # Apply API infrastructure  
+      - name: Terraform Init (API)
+        id: init_api
+        run: terraform init
+        working-directory: api/terraform
+
+      - name: Terraform Plan (API)
+        id: plan_api
+        run: terraform plan -no-color
+        working-directory: api/terraform
+
+      - name: Terraform Apply (API)
+        id: apply_api
+        run: terraform apply -auto-approve -no-color
+        working-directory: api/terraform
+
+      - name: Get API Outputs
+        id: terraform_api_output
+        run: |
+          echo "api_instance_public_dns=$(terraform output -raw api_instance_public_dns)" >> $GITHUB_OUTPUT
+          echo "ecr_repository_url=$(terraform output -raw ecr_repository_url)" >> $GITHUB_OUTPUT
+          echo "random_suffix=$(terraform output -raw random_suffix)" >> $GITHUB_OUTPUT
+        working-directory: api/terraform
+
+  setup_secrets:
+    name: Setup AWS Secrets Manager
     runs-on: ubuntu-latest
     needs: terraform
-    defaults:
-      run:
-        working-directory: ${{ github.workspace }}
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install GitHub CLI
-        run: sudo apt-get update && sudo apt-get install -y gh
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: af-south-1
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-session-name: GithubActionsSession
 
-      - name: Login to GitHub CLI
-        run: gh auth login --with-token
-
-      - name: Setup Git with GitHub CLI
-        run: gh auth setup-git
-
-      - name: Set AWS_GITHUB_ACTIONS_ROLE_ARN variable
-        run: gh variable set AWS_GITHUB_ACTIONS_ROLE_ARN --body "${{ needs.terraform.outputs.role_arn }}"
-
-      - name: Set ECR_REPOSITORY_NAME variable
+      - name: Set Database Connection String
         run: |
-          REPO_URL="${{ needs.terraform.outputs.ecr_repo_url }}"
-          REPO_NAME=$(echo "$REPO_URL" | sed 's#^[^/]\+/[^/]\+\/\([^/]\+\)$#\1#')
-          gh variable set ECR_REPOSITORY_NAME --body "$REPO_NAME"
-
-      - name: Set EC2_INSTANCE_PUBLIC_IP variable
-        run: gh variable set EC2_INSTANCE_PUBLIC_IP --body "${{ needs.terraform.outputs.instance_ip }}"
-
-      - name: Set HOST secret
+          aws secretsmanager put-secret-value \
+            --secret-id "ConnectionStrings/DefaultConnection-dev-${{ needs.terraform.outputs.api_suffix }}" \
+            --secret-string "${{ needs.terraform.outputs.db_connection_string }}"
+      
+      - name: Set Google OAuth Secrets
         run: |
-          if ${{ needs.terraform.outputs.instance_ip != '' }}; then
-            gh secret set HOST --body "${{ needs.terraform.outputs.instance_ip }}"
-            echo "HOST secret updated."
-          else
-            echo "EC2 instance IP address is not available, skipping HOST secret update."
-          fi
+          aws secretsmanager put-secret-value \
+            --secret-id "Google/ClientId-dev-${{ needs.terraform.outputs.api_suffix }}" \
+            --secret-string "${{ secrets.GOOGLE_CLIENT_ID }}"
+          
+          aws secretsmanager put-secret-value \
+            --secret-id "Google/ClientSecret-dev-${{ needs.terraform.outputs.api_suffix }}" \
+            --secret-string "${{ secrets.GOOGLE_CLIENT_SECRET }}"
+          
+          aws secretsmanager put-secret-value \
+            --secret-id "Google/RedirectUri-dev-${{ needs.terraform.outputs.api_suffix }}" \
+            --secret-string "http://${{ needs.terraform.outputs.api_instance_dns }}/google-signin"
+            
+  build_deploy:
+    name: Build and Deploy Docker Image
+    runs-on: ubuntu-latest
+    needs: [terraform, setup_secrets]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: af-south-1
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-session-name: GithubActionsSession
+          
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ needs.terraform.outputs.ecr_repository_url }}
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REPOSITORY:$IMAGE_TAG -f api/Dockerfile .
+          docker push $ECR_REPOSITORY:$IMAGE_TAG
