@@ -49,15 +49,15 @@ public class InteractionsController : ControllerBase
 
     }
     
-    [HttpDelete("cancel-request/{targetId}")]
-    public async Task<IActionResult> CancelRequest(Guid targetId)
+    [HttpPost("cancel-request")]
+    public async Task<IActionResult> CancelRequest([FromBody] AcceptRequestDto request)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-    
+
         try
         {
-            await _interactionRepository.CancelRequest(userId, targetId);
-            return Ok();
+            await _interactionRepository.CancelRequest(userId, request.TargetId);
+            return NoContent();
         }
         catch (Exception ex)
         {
@@ -65,15 +65,15 @@ public class InteractionsController : ControllerBase
         }
     }
 
-    [HttpPost("accept-request/{targetId}")]
-    public async Task<IActionResult> AcceptRequest(Guid targetId)
+    [HttpPost("accept-request")]
+    public async Task<IActionResult> AcceptRequest([FromBody] AcceptRequestDto request)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-    
+
         try
         {
-            await _interactionRepository.ReactToRequest(userId, targetId, true);
-            return Ok();
+            await _interactionRepository.ReactToRequest(userId, request.TargetId, true);
+            return NoContent();
         }
         catch (Exception ex)
         {
@@ -81,20 +81,25 @@ public class InteractionsController : ControllerBase
         }
     }
 
-    [HttpPost("reject-request/{targetId}")]
-    public async Task<IActionResult> RejectRequest(Guid targetId)
+    [HttpPost("reject-request")]
+    public async Task<IActionResult> RejectRequest([FromBody] AcceptRequestDto request)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-    
+
         try
         {
-            await _interactionRepository.ReactToRequest(userId, targetId, false);
-            return Ok();
+            await _interactionRepository.ReactToRequest(userId, request.TargetId, false);
+            return NoContent();
         }
         catch (Exception ex)
         {
             return StatusCode(500, $"Error rejecting request: {ex.Message}");
         }
     }
+    
+}
 
+public class AcceptRequestDto
+{
+    public Guid TargetId { get; set; }
 }

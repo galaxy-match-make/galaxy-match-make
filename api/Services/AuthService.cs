@@ -78,16 +78,6 @@ namespace galaxy_match_make.Services
 
             return await GoogleJsonWebSignature.ValidateAsync(idToken, validationSettings);
         }
-
-        public string GoogleLogin()
-        {
-
-            return $"https://accounts.google.com/o/oauth2/v2/auth?" +
-                   $"client_id={_config["Google:ClientId"]}&" +
-                   $"redirect_uri={_config["Google:RedirectUri"]}&" +
-                   $"response_type=code&" +
-                   $"scope=openid%20email%20profile&";
-        }
         
         public async Task<ClaimsPrincipal> ValidateGoogleJwtAndCreatePrincipal(string idToken)
         {

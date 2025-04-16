@@ -147,8 +147,11 @@
                                                 <!-- Avatar -->
                                                 <Border Grid.Column="0" Width="50" Height="50" CornerRadius="25" Background="#2A0F5B"
                                                         BorderBrush="#5D12D2" BorderThickness="2" Margin="0,0,15,0">
-                                                    <Image Source="{Binding AvatarUrl, TargetNullValue='avares://GalaxyMatchGUI/Assets/default-avatar.png'}"
-                                                           Stretch="UniformToFill">
+                                                    <Border.Clip>
+                                                        <EllipseGeometry RadiusX="25" RadiusY="25" Center="25,25"/>
+                                                    </Border.Clip>
+                                                    <Image Source="{Binding AvatarImage, TargetNullValue='avares://GalaxyMatchGUI/Assets/default-avatar.png'}"
+                                                        Stretch="UniformToFill">
                                                         <Image.Effect>
                                                             <DropShadowEffect BlurRadius="8" Color="#5D12D2" Opacity="0.6"/>
                                                         </Image.Effect>
@@ -240,8 +243,11 @@
                                                 <!-- Avatar -->
                                                 <Border Grid.Column="0" Width="50" Height="50" CornerRadius="25" Background="#2A0F5B"
                                                         BorderBrush="#5D12D2" BorderThickness="2" Margin="0,0,15,0">
-                                                    <Image Source="{Binding AvatarUrl, TargetNullValue='avares://GalaxyMatchGUI/Assets/default-avatar.png'}"
-                                                           Stretch="UniformToFill">
+                                                    <Border.Clip>
+                                                        <EllipseGeometry RadiusX="25" RadiusY="25" Center="25,25"/>
+                                                    </Border.Clip>
+                                                    <Image Source="{Binding AvatarImage, TargetNullValue='avares://GalaxyMatchGUI/Assets/default-avatar.png'}"
+                                                        Stretch="UniformToFill">
                                                         <Image.Effect>
                                                             <DropShadowEffect BlurRadius="8" Color="#5D12D2" Opacity="0.6"/>
                                                         </Image.Effect>
@@ -347,8 +353,11 @@
                                                 <!-- Avatar -->
                                                 <Border Grid.Column="0" Width="50" Height="50" CornerRadius="25" Background="#2A0F5B"
                                                         BorderBrush="#5D12D2" BorderThickness="2" Margin="0,0,15,0">
-                                                    <Image Source="{Binding AvatarUrl, TargetNullValue='avares://GalaxyMatchGUI/Assets/default-avatar.png'}"
-                                                           Stretch="UniformToFill">
+                                                    <Border.Clip>
+                                                        <EllipseGeometry RadiusX="25" RadiusY="25" Center="25,25"/>
+                                                    </Border.Clip>
+                                                    <Image Source="{Binding AvatarImage, TargetNullValue='avares://GalaxyMatchGUI/Assets/default-avatar.png'}"
+                                                        Stretch="UniformToFill">
                                                         <Image.Effect>
                                                             <DropShadowEffect BlurRadius="8" Color="#5D12D2" Opacity="0.6"/>
                                                         </Image.Effect>
@@ -362,24 +371,47 @@
                                                            FontWeight="SemiBold" 
                                                            Foreground="White"
                                                            VerticalAlignment="Center"/>
+                                                
+                                                <StackPanel Grid.Column="2"
+                                                            Orientation="Horizontal"
+                                                            HorizontalAlignment="Right"
+                                                            VerticalAlignment="Center"
+                                                            Spacing="10">
+    
+                                                    <!-- Accept Button -->
+                                                    <Button Command="{Binding AcceptRequest}"
+                                                            CommandParameter="{Binding}"
+                                                            Content="Accept"
+                                                            Foreground="White"
+                                                            Background="#4CAF50"
+                                                            Padding="12,6"
+                                                            CornerRadius="20">
+                                                        <Button.Styles>
+                                                            <Style Selector="Button:pointerover">
+                                                                <Setter Property="Background" Value="#6ABF6E"/>
+                                                                <Setter Property="Cursor" Value="Hand"/>
+                                                            </Style>
+                                                        </Button.Styles>
+                                                    </Button>
 
-                                                <!-- Accept Button -->
-                                                <Button Grid.Column="2"
-                                                        Command="{Binding AcceptRequest}"
-                                                        CommandParameter="{Binding}"
-                                                        Content="Accept"
-                                                        Foreground="White"
-                                                        Background="#4CAF50"
-                                                        Padding="12,6"
-                                                        CornerRadius="20"
-                                                        VerticalAlignment="Center">
-                                                    <Button.Styles>
-                                                        <Style Selector="Button:pointerover">
-                                                            <Setter Property="Background" Value="#6ABF6E"/>
-                                                            <Setter Property="Cursor" Value="Hand"/>
-                                                        </Style>
-                                                    </Button.Styles>
-                                                </Button>
+                                                    <!-- Reject Button -->
+                                                    <Button Command="{Binding RejectRequest}"
+                                                            CommandParameter="{Binding}"
+                                                            Content="Reject"
+                                                            Foreground="White"
+                                                            Background="#F44336"
+                                                            Padding="12,6"
+                                                            CornerRadius="20">
+                                                        <Button.Styles>
+                                                            <Style Selector="Button:pointerover">
+                                                                <Setter Property="Background" Value="#E57373"/>
+                                                                <Setter Property="Cursor" Value="Hand"/>
+                                                            </Style>
+                                                        </Button.Styles>
+                                                    </Button>
+
+                                                </StackPanel>
+
                                             </Grid>
                                         </Border>
                                     </DataTemplate>

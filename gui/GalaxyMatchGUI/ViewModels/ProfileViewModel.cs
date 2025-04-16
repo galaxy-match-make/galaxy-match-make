@@ -1,24 +1,34 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GalaxyMatchGUI.Models;
 using GalaxyMatchGUI.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
+using Avalonia.Controls;
+using Avalonia;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using GalaxyMatchGUI.lib;
 
 namespace GalaxyMatchGUI.ViewModels
 {
     public partial class ProfileViewModel : ViewModelBase
     {
         private readonly INavigationService? _navigationService;
-        private const string ApiBaseUrl = "http://localhost:5284";
+        private string ApiBaseUrl = AppSettings.BackendUrl;
         private readonly HttpClient _httpClient = new HttpClient();
 
         [ObservableProperty]
@@ -72,19 +82,155 @@ namespace GalaxyMatchGUI.ViewModels
         [ObservableProperty]
         private Profile? _existingProfile;
 
+        [ObservableProperty]
+        private string uploadStatusMessage;
+
+        [ObservableProperty]
+        private Bitmap avatarImage;
+
         // Parameterless constructor for use by the navigation system
         public ProfileViewModel()
         {
             // Get navigation service from the app's service provider
             _navigationService = App.ServiceProvider?.GetService(typeof(INavigationService)) as INavigationService;
             LoadData();
+
         }
 
-        // Constructor for manual instantiation with dependency injection
+        [RelayCommand]
+        private async Task UploadImage()
+        {
+            try
+            {
+                // Get the current window directly from the application lifetime
+                var window = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+                if (window == null)
+                {
+                    UploadStatusMessage = "Cannot access file system";
+                    return;
+                }
+                
+                // Create file picker options
+                var filters = new List<FileDialogFilter>
+                {
+                    new FileDialogFilter
+                    {
+                        Name = "Image Files",
+                        Extensions = new List<string> { "jpg", "jpeg", "png", "gif", "bmp" }
+                    }
+                };
+                
+                // Open file dialog
+                var dialog = new OpenFileDialog
+                {
+                    Title = "Select Profile Image",
+                    Filters = filters,
+                    AllowMultiple = false
+                };
+                
+                var result = await dialog.ShowAsync(window);
+                if (result == null || result.Length == 0)
+                {
+                    UploadStatusMessage = "";
+                    return;
+                }
+                
+                var filePath = result[0];
+                
+                // Check file size
+                var fileInfo = new FileInfo(filePath);
+                if (fileInfo.Length > 1024 * 1024 * 2) // 2MB max
+                {
+                    UploadStatusMessage = "Image too large (max 2MB)";
+                    return;
+                }
+                
+                // Read the file as bytes
+                byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
+                
+                // Convert to base64
+                string base64Image = Convert.ToBase64String(fileBytes);
+                
+                // Determine file extension
+                string fileName = Path.GetFileName(filePath).ToLower();
+                string mimeType = "image/jpeg"; // Default
+                
+                if (fileName.EndsWith(".png"))
+                    mimeType = "image/png";
+                else if (fileName.EndsWith(".gif"))
+                    mimeType = "image/gif";
+                else if (fileName.EndsWith(".bmp"))
+                    mimeType = "image/bmp";
+                
+                // Create the data URL format
+                AvatarUrl = $"data:{mimeType};base64,{base64Image}";
+                
+                UploadStatusMessage = "Image uploaded successfully";
+            }
+            catch (Exception ex)
+            {
+                UploadStatusMessage = $"Error uploading image: {ex.Message}";
+                Console.WriteLine($"Image upload error: {ex}");
+            }
+        }
+
         public ProfileViewModel(INavigationService navigationService)
         {
             _navigationService = navigationService;
             LoadData();
+        }
+
+        private async Task LoadProfileImage(string? avatarUrl)
+        {
+            if (string.IsNullOrEmpty(avatarUrl))
+            {
+                // Use default image
+                avatarUrl = "avares://GalaxyMatchGUI/Assets/alien_profile.png";
+            }
+            
+            try
+            {
+                // Check if it's a base64 image
+                if (avatarUrl.StartsWith("data:image") && avatarUrl.Contains("base64,"))
+                {
+                    await LoadBase64Image(avatarUrl);
+                    return;
+                }
+                
+                bool hasValidUrl = !string.IsNullOrEmpty(avatarUrl) && 
+                                (avatarUrl.StartsWith("http://") || 
+                                avatarUrl.StartsWith("https://"));
+                                
+                if (hasValidUrl)
+                {
+                    // Load from remote URL
+                    var image = await AsyncImageLoader.LoadAsync(avatarUrl);
+                    AvatarImage = (Bitmap)image;
+                }
+                else
+                {
+                    // Load from local asset
+                    var uri = new Uri(avatarUrl);
+                    using var stream = AssetLoader.Open(uri);
+                    AvatarImage = new Bitmap(stream);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading profile image: {ex.Message}");
+                
+                try
+                {
+                    // If URL loading fails, try fall back to local asset
+                    var uri = new Uri("avares://GalaxyMatchGUI/Assets/alien_profile.png");
+                    using var stream = AssetLoader.Open(uri);
+                    AvatarImage = new Bitmap(stream);
+                }
+                catch (Exception fallbackEx)
+                {
+                    Console.WriteLine($"Error loading fallback image: {fallbackEx.Message}");
+                }
+            }
         }
 
         private async void LoadData()
@@ -122,6 +268,40 @@ namespace GalaxyMatchGUI.ViewModels
             }
         }
 
+        private async Task LoadBase64Image(string base64String)
+        {
+            try
+            {
+                // Extract the base64 part after the comma
+                int commaIndex = base64String.IndexOf(',');
+                if (commaIndex > 0)
+                {
+                    string data = base64String.Substring(commaIndex + 1);
+                    byte[] bytes = Convert.FromBase64String(data);
+                    
+                    using var stream = new MemoryStream(bytes);
+                    AvatarImage = new Bitmap(stream);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading base64 image: {ex.Message}");
+                
+                // Load fallback image on error
+                try
+                {
+                    var uri = new Uri("avares://GalaxyMatchGUI/Assets/alien_profile.png");
+                    using var stream = AssetLoader.Open(uri);
+                    AvatarImage = new Bitmap(stream);
+                }
+                catch (Exception fallbackEx)
+                {
+                    Console.WriteLine($"Error loading fallback image: {fallbackEx.Message}");
+                }
+            }
+        }
+
+
         private async Task LoadCurrentProfile()
         {
             try
@@ -142,6 +322,7 @@ namespace GalaxyMatchGUI.ViewModels
                         DisplayName = profile.DisplayName;
                         Bio = profile.Bio ?? string.Empty;
                         AvatarUrl = profile.AvatarUrl ?? string.Empty;
+                        await LoadProfileImage(AvatarUrl);
                         HeightInGalacticInches = profile.HeightInGalacticInches;
                         GalacticDateOfBirth = profile.GalacticDateOfBirth;
                         
@@ -262,8 +443,9 @@ namespace GalaxyMatchGUI.ViewModels
             }
         }
 
+        // Fix: Make sure the method signature matches what's expected
         [RelayCommand]
-        public async Task ToggleInterest(Interest interest)
+        public void ToggleInterest(Interest interest)
         {
             if (SelectedInterests.Contains(interest))
             {
@@ -273,6 +455,9 @@ namespace GalaxyMatchGUI.ViewModels
             {
                 SelectedInterests.Add(interest);
             }
+            
+            // Force UI update (might help in some cases)
+            OnPropertyChanged(nameof(SelectedInterests));
         }
 
         [RelayCommand]

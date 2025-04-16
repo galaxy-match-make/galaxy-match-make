@@ -54,7 +54,7 @@ public class MessagesController : ControllerBase
         return NoContent();
     }
 
-    [HttpDelete("{id}")]
+    [HttpPost("{id}")]
     public async Task<IActionResult> DeleteMessage(int id)
     {
         await _messageRepository.DeleteMessageAsync(id);

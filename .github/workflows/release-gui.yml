@@ -1,0 +1,47 @@
+name: Build and Release GalaxyMatchGUI
+on:
+  push:
+    tags:
+      - 'v*.*.*'   # Triggers on version tags like v1.0.0
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 9 SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore gui/GalaxyMatchGUI/GalaxyMatchGUI.csproj
+
+    - name: Build project
+      run: dotnet build gui/GalaxyMatchGUI/GalaxyMatchGUI.csproj --configuration Release --no-restore
+
+    - name: Publish self-contained app (Windows x64)
+      run: dotnet publish gui/GalaxyMatchGUI/GalaxyMatchGUI.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish
+
+    - name: Zip published output
+      run: Compress-Archive -Path publish\* -DestinationPath GalaxyMatchGUI.zip
+
+    - name: Upload artifact (optional)
+      uses: actions/upload-artifact@v4
+      with:
+        name: GalaxyMatchGUI
+        path: GalaxyMatchGUI.zip
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: GalaxyMatchGUI.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

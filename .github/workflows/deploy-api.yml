@@ -9,7 +9,7 @@ on:
       - dev
     paths:
       - 'api/**'
-        
+
 defaults:
   run:
     working-directory: api
@@ -63,7 +63,10 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: csharp-levelup-repo
           IMAGE_TAG: ${{ github.sha }}
-        run: |-
+        run: |
+          cat <<EOF > appsettings.json
+          ${{ secrets.APPSETTINGSCONFIG }}
+          EOF
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 

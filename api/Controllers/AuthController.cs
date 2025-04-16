@@ -15,13 +15,6 @@ namespace galaxy_match_make.Controllers
             _authService = authService;
         }
 
-        [HttpGet("google-login")]
-        public string GoogleLogin()
-        {
-            return _authService.GoogleLogin();
-            
-        }
-
         [HttpGet("google-callback")]
         public async Task<IActionResult> GoogleCallback([FromQuery] string code)
         {

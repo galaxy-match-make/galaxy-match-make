@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System;
 using System.Linq;
 using GalaxyMatchGUI.Models;
+using GalaxyMatchGUI.lib;
 using Microsoft.AspNetCore.SignalR.Client;
 using Avalonia.Threading;
 
@@ -35,6 +36,8 @@ public partial class MessageRoomViewModel : ViewModelBase
 
     [ObservableProperty]
     private string selectedOption;
+    [ObservableProperty]
+    private string _recipientName;
 
     public ObservableCollection<string> Options { get; } = new()
     {
@@ -137,6 +140,12 @@ public partial class MessageRoomViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void GoBack()
+    {
+        NavigationService?.NavigateTo<InteractionsViewModel>();
+    }
+
+    [RelayCommand]
     private async Task SendMessageAsync()
     {
         if (string.IsNullOrWhiteSpace(CurrentMessage))
@@ -170,10 +179,9 @@ public partial class MessageRoomViewModel : ViewModelBase
 
             // Send to API
             var response = await _httpClient.PostAsJsonAsync(
-                "http://localhost:5284/api/messages", 
+                AppSettings.BackendUrl+"/api/messages", 
                 messageToSend);
 
-            CurrentMessage = $"{response.StatusCode}";
                 
             if (response.IsSuccessStatusCode)
             {
@@ -213,7 +221,9 @@ public partial class MessageRoomViewModel : ViewModelBase
             
             // Fetch previous messages
             var response = await _httpClient.GetAsync(
-                $"http://localhost:5284/api/messages/between?senderId={_currentUserId}&recipientId={_recipientId}");
+                $"{AppSettings.BackendUrl}/api/messages/between?senderId={_currentUserId}&receiverId={_recipientId}");
+            
+            CurrentMessage = $"{response.StatusCode}";
                 
             if (response.IsSuccessStatusCode)
             {

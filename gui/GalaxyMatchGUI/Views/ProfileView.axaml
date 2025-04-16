@@ -138,25 +138,26 @@
                         <Panel>
                             <!-- Default avatar image -->
                             <Image Source="avares://GalaxyMatchGUI/Assets/alien_profile.png"
-                                  Width="100" Height="100"
-                                  IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-                                  HorizontalAlignment="Center"
-                                  VerticalAlignment="Center"/>
+                                Width="100" Height="100"
+                                IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
                             
                             <!-- User avatar if URL is provided -->
-                            <controls:AsyncImage Source="{Binding AvatarUrl}"
-                                      IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                      HorizontalAlignment="Stretch"
-                                      VerticalAlignment="Stretch"
-                                      Stretch="UniformToFill"/>
+                            <Image Source="{Binding AvatarImage}"
+                                IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                Stretch="UniformToFill"/>
                         </Panel>
                     </Border>
                     
                     <StackPanel Grid.Column="1" Spacing="10" VerticalAlignment="Center">
-                        <TextBlock Text="Avatar URL:" Foreground="#CCCCFF" FontWeight="SemiBold"/>
-                        <TextBox Text="{Binding AvatarUrl}" Watermark="Enter URL to your cosmic portrait" Width="350" HorizontalAlignment="Left"/>
-                        <TextBlock Text="Use a URL to an image that represents you in the universe" Foreground="#9F9FFF" FontStyle="Italic" FontSize="12"/>
-                    </StackPanel>
+                    <TextBlock Text="Profile Image:" Foreground="#CCCCFF" FontWeight="SemiBold"/>
+                    <Button Content="Upload Image" Command="{Binding UploadImageCommand}" Width="150" HorizontalAlignment="Left"/>
+                    <TextBlock Text="Upload an image that represents you in the universe" Foreground="#9F9FFF" FontStyle="Italic" FontSize="12"/>
+                    <TextBlock Text="{Binding UploadStatusMessage}" Foreground="#9F9FFF" FontStyle="Italic" FontSize="12" IsVisible="{Binding UploadStatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                </StackPanel>
                 </Grid>
 
                 <!-- Form Content in a glowing panel -->
@@ -297,8 +298,8 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Button Command="{Binding DataContext.ToggleInterestCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                           CommandParameter="{Binding}"
-                                           Margin="5">
+                                        CommandParameter="{Binding}"
+                                        Margin="5">
                                         <Button.Background>
                                             <MultiBinding Converter="{StaticResource InterestSelectedConverter}">
                                                 <Binding Path="."/>
@@ -306,8 +307,8 @@
                                             </MultiBinding>
                                         </Button.Background>
                                         <TextBlock Text="{Binding InterestName}" 
-                                                  Padding="10,5" 
-                                                  Foreground="White"/>
+                                                Padding="10,5" 
+                                                Foreground="White"/>
                                     </Button>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>

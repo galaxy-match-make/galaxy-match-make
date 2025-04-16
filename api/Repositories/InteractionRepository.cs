@@ -55,9 +55,9 @@ public class InteractionRepository : IInteractionRepository
               SELECT 1 
               FROM reactions r2 
               WHERE r2.reactor_id = r1.target_id
-                AND r2.target_id = r1.reactor_id
-                AND r2.is_positive = true
-          )";
+                AND r2.target_id = @UserId
+          )
+        ";
 
         var results = await connection.QueryAsync<ContactDto>(query, new { UserId = userId });
         return results.ToList();
@@ -80,10 +80,10 @@ public class InteractionRepository : IInteractionRepository
           AND NOT EXISTS (
               SELECT 1 
               FROM reactions r2 
-              WHERE r2.reactor_id = r1.target_id
+              WHERE r2.reactor_id = @UserId
                 AND r2.target_id = r1.reactor_id
-                AND r2.is_positive = true
           )";
+
 
         var results = await connection.QueryAsync<ContactDto>(query, new { UserId = userId });
         return results.ToList();

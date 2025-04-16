@@ -6,13 +6,14 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using GalaxyMatchGUI.Models;
+using GalaxyMatchGUI.lib;
 
 namespace GalaxyMatchGUI.Services
 {
     public class ReactionService
     {
         private readonly HttpClient _httpClient;
-        private const string ApiBaseUrl = "http://localhost:5284";
+        private string ApiBaseUrl = AppSettings.BackendUrl;
 
         public ReactionService()
         {
@@ -60,7 +61,7 @@ namespace GalaxyMatchGUI.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error sending reaction: {ex.Message}");
+                Console.WriteLine($"Exception in SendReactionAsync: {ex.Message}");
                 return false;
             }
         }

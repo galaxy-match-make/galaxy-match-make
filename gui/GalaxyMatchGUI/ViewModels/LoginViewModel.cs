@@ -52,7 +52,9 @@ namespace GalaxyMatchGUI.ViewModels
                     StatusMessage = "Please complete your profile";
                     
                     // Navigate to profile creation/edit view
-                    // NavigationService?.NavigateTo<ProfileViewModel>();
+
+                    NavigationService?.NavigateTo<ProfileViewModel>();
+
                 }
             }
             catch (Exception ex)

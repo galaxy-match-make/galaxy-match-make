@@ -7,8 +7,10 @@ using CommunityToolkit.Mvvm.Input;
 using GalaxyMatchGUI.Models;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reactive;
 using System.Text.Json;
 using System.Windows.Input;
+using ExCSS;
 using GalaxyMatchGUI.Services;
 
 namespace GalaxyMatchGUI.ViewModels
@@ -80,7 +82,7 @@ namespace GalaxyMatchGUI.ViewModels
             }
         }
 
-        private async Task<ObservableCollection<Contact>> GetMessageContactsAsync()
+        public async Task<ObservableCollection<Contact>> GetMessageContactsAsync()
         {
             var httpClient = HttpService.Instance;
             var reactionsList = (await httpClient.GetJsonAsync<List<Contact>>("/api/interactions", true)) ?? new List<Contact>();
@@ -158,6 +160,9 @@ namespace GalaxyMatchGUI.ViewModels
                 
                 SentRequestContacts.Remove(reaction);
                 
+                var httpClient = HttpService.Instance;
+                await httpClient.PostJsonAsync<Unit>("/api/interactions/cancel-request", new { targetId = reaction.UserId }, true);
+
                 SentRequestsStatusMessage = $"Request to {reaction.DisplayName} canceled";
                 
                 UpdateEmptyState();
@@ -171,6 +176,36 @@ namespace GalaxyMatchGUI.ViewModels
                 IsLoadingSentRequests = false;
             }
         }
+        
+        public async Task RejectRequestAsync(Contact reaction)
+        {
+            try
+            {
+                if (reaction == null) return;
+
+                IsLoadingReceivedRequests = true;
+                ReceivedRequestsStatusMessage = $"Rejecting request from {reaction.DisplayName}...";
+
+                ReceivedRequestContacts.Remove(reaction);
+
+                var httpClient = HttpService.Instance;
+                await httpClient.PostJsonAsync<Unit>("/api/interactions/reject-request", new { targetId = reaction.UserId }, true);
+
+
+                ReceivedRequestsStatusMessage = $"Request from {reaction.DisplayName} rejected";
+
+                UpdateEmptyState();
+            }
+            catch (Exception ex)
+            {
+                ReceivedRequestsStatusMessage = $"Error rejecting request: {ex.Message}";
+            }
+            finally
+            {
+                IsLoadingReceivedRequests = false;
+            }
+        }
+
 
         #endregion
 
@@ -235,6 +270,10 @@ namespace GalaxyMatchGUI.ViewModels
                 
                 ReceivedRequestContacts.Remove(reaction);
                 MessageContacts.Add(reaction);
+                
+                var httpClient = HttpService.Instance;
+                await httpClient.PostJsonAsync<Unit>("/api/interactions/accept-request", new { targetId = reaction.UserId }, true);
+
                 
                 ReceivedRequestsStatusMessage = $"Connected with {reaction.DisplayName}!";
                 
