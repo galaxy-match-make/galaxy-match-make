@@ -1,10 +1,11 @@
-name: API - Deploy with Parameter Store
+name: Galaxy Match - Unified Deployment
 
 on:
   push:
     branches:
       - main
       - dev
+      - peo/clean-up
     paths:
       - 'api/**'
   workflow_dispatch:
@@ -14,13 +15,9 @@ on:
         type: choice
         options:
           - development
+          - staging
           - production
         default: 'development'
-        required: true
-      instance_name:
-        description: 'EC2 instance name tag'
-        type: string
-        default: 'galaxy-match-api-server'
         required: true
 
 permissions:
@@ -31,6 +28,7 @@ env:
   AWS_REGION: af-south-1
   CONTAINER_NAME: galaxy-match-api
   PARAMETER_PREFIX: "/galaxy-match"
+  DOTNET_VERSION: '8.0.103'
 
 jobs:
   deploy:
@@ -41,6 +39,21 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      # Set environment based on trigger
+      - name: Set environment
+        id: set-env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "ENVIRONMENT=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "ENVIRONMENT=production" >> $GITHUB_ENV
+          elif [ "${{ github.ref }}" == "refs/heads/staging" ]; then
+            echo "ENVIRONMENT=staging" >> $GITHUB_ENV
+          else
+            echo "ENVIRONMENT=development" >> $GITHUB_ENV
+          fi
+          echo "Selected environment: $(cat $GITHUB_ENV | grep ENVIRONMENT | cut -d '=' -f2)"
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -48,51 +61,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-
-      # Set up environment variables based on trigger type
-      - name: Set environment variables
-        id: set-env
-        run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "ENVIRONMENT=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
-          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            echo "ENVIRONMENT=production" >> $GITHUB_ENV
-          else
-            echo "ENVIRONMENT=development" >> $GITHUB_ENV
-          fi
-
-      # Get EC2 instance IP from AWS automatically
-      - name: Get EC2 instance IP
-        id: ec2-ip
-        run: |
-          # Get instance ID by Name tag
-          INSTANCE_NAME="${{ github.event.inputs.instance_name }}"
-          if [ -z "$INSTANCE_NAME" ]; then
-            INSTANCE_NAME="galaxy-match-api-server"
-          fi
-          
-          INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=$INSTANCE_NAME" "Name=instance-state-name,Values=running" \
-            --query 'Reservations[0].Instances[0].InstanceId' --output text)
-          
-          if [ "$INSTANCE_ID" == "None" ] || [ -z "$INSTANCE_ID" ]; then
-            echo "Error: No running EC2 instance found with name tag: $INSTANCE_NAME"
-            exit 1
-          fi
-          
-          # Get public IP of the instance
-          EC2_IP=$(aws ec2 describe-instances \
-            --instance-ids $INSTANCE_ID \
-            --query 'Reservations[0].Instances[0].PublicIpAddress' \
-            --output text)
-            
-          if [ "$EC2_IP" == "None" ] || [ -z "$EC2_IP" ]; then
-            echo "Error: EC2 instance doesn't have a public IP address"
-            exit 1
-          fi
-          
-          echo "Found EC2 instance $INSTANCE_ID with IP: $EC2_IP"
-          echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
 
       # Store application secrets in AWS Parameter Store
       - name: Store Application Secrets in Parameter Store
@@ -127,23 +95,37 @@ jobs:
             --value "${{ secrets.GOOGLE_REDIRECT_URI }}" \
             --overwrite
 
-          echo "Stored application secrets in Parameter Store"
+          echo "Stored application secrets in Parameter Store for environment: ${{ env.ENVIRONMENT }}"
 
-      # Setup .NET
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.103'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      # Add the AWS SSM package if not already in the project
-      - name: Add AWS SSM package if needed
+      # Add the AWS SSM package if needed
+      - name: Add AWS SSM package
         working-directory: api
         run: |
           if ! grep -q "AWSSDK.SimpleSystemsManagement" galaxy-match-make.csproj; then
             dotnet add package AWSSDK.SimpleSystemsManagement
           fi
 
-      # Build project
+      # Create clean appsettings for deployment
+      - name: Prepare clean appsettings
+        working-directory: api
+        run: |
+          cat <<EOF > appsettings.json
+          {
+            "Logging": {
+              "LogLevel": {
+                "Default": "Information",
+                "Microsoft.AspNetCore": "Warning"
+              }
+            },
+            "AllowedHosts": "*"
+          }
+          EOF
+
       - name: Build project
         working-directory: api
         run: |
@@ -162,7 +144,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           # Create a 12-factor compliant Dockerfile
-          cat > Dockerfile.deploy << 'EOF'
+          cat > Dockerfile.12factor << 'EOF'
           FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
           WORKDIR /app
           EXPOSE 8080
@@ -237,7 +219,7 @@ jobs:
                   
                   # Convert parameter name to environment variable format
                   # Remove the prefix and replace / with __
-                  local env_name=$(echo "$name" | sed "s#$PARAM_PREFIX/##" | sed 's#/#g')
+                  local env_name=$(echo "$name" | sed "s#$PARAM_PREFIX/##" | sed 's#/#__#g')
                   
                   # Set environment variable
                   export "$env_name"="$value"
@@ -256,13 +238,14 @@ jobs:
           EOF
 
           # Build and push the Docker image
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f Dockerfile.deploy .
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f Dockerfile.12factor .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
+      # Get the EC2 instance IP from GitHub variables
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.1.0
         with:
-          host: ${{ env.EC2_IP }}
+          host: ${{ vars.EC2_INSTANCE_PUBLIC_IP }}
           port: 22
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           username: ${{ secrets.USERNAME }}
