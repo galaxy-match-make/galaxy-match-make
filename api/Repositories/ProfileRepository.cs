@@ -7,11 +7,11 @@ namespace galaxy_match_make.Repositories;
 
 public class ProfileRepository : IProfileRepository
 {
-    private readonly DapperContext _context;
+    private readonly AppDbContext _appDbContext;
 
-    public ProfileRepository(DapperContext context)
+    public ProfileRepository(AppDbContext appDbContext)
     {
-        _context = context;
+        _appDbContext = appDbContext;
     }
 
     public async Task<IEnumerable<ProfileDto>> GetAllProfiles()
@@ -33,8 +33,8 @@ public class ProfileRepository : IProfileRepository
     {
         var sql = GetUpsertProfileSql(true);
 
-        using var connection = _context.CreateConnection();
-        using var transaction = connection.BeginTransaction();
+        using var connection = _appDbContext.Connection;
+        using var transaction = _appDbContext.Transaction;
 
         try
         {
@@ -84,7 +84,7 @@ public class ProfileRepository : IProfileRepository
     {
         var sql = GetUpsertProfileSql(false);
 
-        using var connection = _context.CreateConnection();
+        using var connection = _appDbContext.Connection;
         using var transaction = connection.BeginTransaction();
 
         try
@@ -140,7 +140,7 @@ public class ProfileRepository : IProfileRepository
     private async Task<IEnumerable<ProfileDto>> QueryProfiles(string sql, object? parameters = null)
     {
         var profileDictionary = new Dictionary<int, ProfileDto>();
-        using var connection = _context.CreateConnection();
+        using var connection = _appDbContext.Connection;
 
         // Use QueryAsync instead of Query to make this truly asynchronous
         var profiles = await connection.QueryAsync<ProfileDto, SpeciesDto, PlanetDto, GenderDto, string, ProfileDto>(
@@ -192,7 +192,7 @@ public class ProfileRepository : IProfileRepository
                     AND r2.is_positive = true
               );";
 
-        using var connection = _context.CreateConnection();
+        using var connection = _appDbContext.Connection;
         return await connection.QueryAsync<MatchedProfileDto>(query, new { UserId });
     }
 
@@ -318,7 +318,7 @@ public class ProfileRepository : IProfileRepository
             WHERE r.target_id = @UserId
               AND r.is_positive = true";
 
-        using var connection = _context.CreateConnection();
+        using var connection = _appDbContext.Connection;
         return await connection.QueryAsync<LikersDto>(query, new { UserId });
     }
 }

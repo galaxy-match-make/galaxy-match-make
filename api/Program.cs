@@ -1,7 +1,11 @@
+using System.Text.Json;
+using Amazon.SecretsManager;
+using Amazon.SecretsManager.Model;
 using galaxy_match_make.Data;
 using galaxy_match_make.Models;
 using galaxy_match_make.Repositories;
 using galaxy_match_make.Services;
+using galaxy_match_make.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -49,6 +53,65 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
+
+
+/////////
+///
+var secretName = "CSharpLevelUpDbSecret";
+var regionEndpoint = Amazon.RegionEndpoint.AFSouth1; // Ensure this matches your region
+
+var secretsManagerClient = new AmazonSecretsManagerClient(regionEndpoint);
+
+try
+{
+    var request = new GetSecretValueRequest
+    {
+        SecretId = secretName
+    };
+
+    var response = await secretsManagerClient.GetSecretValueAsync(request);
+
+    if (response?.SecretString != null)
+    {
+        var credentials = JsonSerializer.Deserialize<DatabaseCredentials>(response.SecretString);
+
+        if (credentials != null)
+        {
+            var connectionString = $"Host={credentials.Host};Database=galaxy-match-db;Port=5432;Username={credentials.Username};Password={credentials.Password};TrustServerCertificate=True;";
+
+            // Configure your DbContext using the retrieved connection string
+            builder.Services.AddScoped<AppDbContext>(provider => new AppDbContext(connectionString));
+
+            // Optionally, you can register the credentials object for later use if needed
+            builder.Services.AddSingleton(credentials);
+        }
+        else
+        {
+            builder.Services.AddSingleton(new DatabaseCredentials { Username = "DefaultUser", Password = "DefaultPassword", Host = "localhost" }); // Provide default values or handle the error appropriately
+            Console.WriteLine($"Error: Could not deserialize secret '{secretName}'. Using default credentials.");
+        }
+    }
+    else
+    {
+        builder.Services.AddSingleton(new DatabaseCredentials { Username = "DefaultUser", Password = "DefaultPassword", Host = "localhost" }); // Provide default values or handle the error appropriately
+        Console.WriteLine($"Error: Secret '{secretName}' not found or empty. Using default credentials.");
+    }
+}
+catch (AmazonSecretsManagerException ex)
+{
+    builder.Services.AddSingleton(new DatabaseCredentials { Username = "DefaultUser", Password = "DefaultPassword", Host = "localhost" }); // Provide default values or handle the error appropriately
+    Console.WriteLine($"Error retrieving secret '{secretName}': {ex.Message}. Using default credentials.");
+    // Consider logging the exception in more detail
+}
+finally
+{
+    secretsManagerClient.Dispose();
+}
+/// 
+
+
+
+
 builder.Services.AddSingleton<DapperContext>();
 
 builder.Services.AddScoped<IPlanetRepository, PlanetRepository>();
@@ -79,6 +142,8 @@ builder.Services.AddSingleton(sp =>
     return context.CreateConnection();
 });
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+
+
 
 var app = builder.Build();
 
