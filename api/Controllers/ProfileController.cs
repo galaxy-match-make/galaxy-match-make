@@ -159,5 +159,29 @@ namespace galaxy_match_make.Controllers
                 }
             }
         }
+
+        [Authorize]
+        [HttpGet("likers")]
+        public async Task<ActionResult<List<LikersDto>>> GetUserLikersProfiles()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            {
+                return Unauthorized("You are not authorized to access this resource.");
+            }
+            else
+            {
+                var likersProfiles = await _profileRepository.GetUserLikersProfiles(userId);
+ 
+                if (likersProfiles == null)
+                {
+                    return NotFound("No user liked you profile.");
+                }
+                else
+                {
+                    return Ok(likersProfiles);
+                }
+            }
+        }
     }
 }

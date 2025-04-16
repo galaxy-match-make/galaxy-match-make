@@ -11,6 +11,4 @@ public interface IMessageRepository
     Task DeleteMessageAsync(int id);
 
     Task<IEnumerable<MessageDto>> GetMessagesBetweenTwoUsers(Guid senderId, Guid receiverId);
-    
-    Task<List<ContactDto>> GetChatsByUserIdAsync(Guid userId);
 }

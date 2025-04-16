@@ -1,4 +1,4 @@
-﻿namespace galaxy_match_make.Models
+namespace galaxy_match_make.Models
 {
     public class ContactDto
     {

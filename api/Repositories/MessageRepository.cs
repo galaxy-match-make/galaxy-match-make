@@ -55,26 +55,4 @@ public class MessageRepository : IMessageRepository
         using var connection = _context.CreateConnection();
         return await connection.QueryAsync<MessageDto>(query, new { SenderId = senderId, ReceiverId = receiverId });
     }
-
-    public async Task<List<ContactDto>> GetChatsByUserIdAsync(Guid userId)
-    {
-        const string query = @"
-            SELECT DISTINCT
-                p.user_id,
-                p.display_name,
-                p.avatar_url
-            FROM messages m
-            JOIN profiles p ON 
-                p.user_id = CASE 
-                    WHEN m.sender_id = @UserId THEN m.recipient_id 
-                    ELSE m.sender_id 
-                END
-            WHERE 
-                m.sender_id = @UserId OR m.recipient_id = @UserId";
-        
-        using var connection = _context.CreateConnection();
-        var allMessages = await connection.QueryAsync<ContactDto>(query, new { UserId = userId });
-        
-        return allMessages.ToList();
-    }
 }

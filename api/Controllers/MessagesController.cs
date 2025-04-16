@@ -54,7 +54,7 @@ public class MessagesController : ControllerBase
         return NoContent();
     }
 
-    [HttpDelete("{id}")]
+    [HttpPost("{id}")]
     public async Task<IActionResult> DeleteMessage(int id)
     {
         await _messageRepository.DeleteMessageAsync(id);
@@ -67,23 +67,6 @@ public class MessagesController : ControllerBase
         var messages = await _messageRepository.GetMessagesBetweenTwoUsers(senderId, receiverId);
 
         return Ok(messages);
-    }
-
-    [HttpGet("contacts")]
-    [Authorize]
-    public async Task<IActionResult> GetChats()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var chats = await _messageRepository.GetChatsByUserIdAsync(Guid.Parse(userId));
-
-        if (chats == null)
-        {
-            return Ok(new List<ContactDto>());
-        }
-        else
-        {
-            return Ok(chats);
-        }
     }
 
 }

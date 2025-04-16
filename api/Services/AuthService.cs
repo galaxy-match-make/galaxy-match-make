@@ -60,6 +60,7 @@ namespace galaxy_match_make.Services
 
             return new AuthResponse
             {
+                UserId = userDto.Id,
                 Email = payload.Email,
                 Name = payload.Name,
                 JwtToken = tokenResponse.IdToken,
@@ -122,6 +123,7 @@ namespace galaxy_match_make.Services
     
     public class AuthResponse
     {
+        public Guid UserId { get; set; }
         public string Email { get; set; }
         public string Name { get; set; }
         public string JwtToken { get; set; }

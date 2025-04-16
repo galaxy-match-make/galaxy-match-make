@@ -54,7 +54,7 @@ builder.Services.AddSingleton<DapperContext>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
 builder.Services.AddScoped<IMessageRepository, MessageRepository>();
-builder.Services.AddScoped<IReactionRepository, ReactionRepository>();
+builder.Services.AddScoped<IInteractionRepository, InteractionRepository>();
 builder.Services.AddScoped<IInterestRepository, InterestRepository>();
 
 builder.Services.AddScoped<IGenericRepository<CharacteristicCategoriesDto>, GenericRepository<CharacteristicCategoriesDto>>();
@@ -78,13 +78,14 @@ builder.Services.AddScoped<IProfileService, ProfileService>();
 
 builder.Services.AddScoped<GoogleAuthService>();
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+builder.Services.AddScoped<IInteractionRepository, InteractionRepository>();
 
-// Remove the following singleton registration that causes connection sharing
-// builder.Services.AddSingleton(sp =>
-// {
-//     var context = sp.GetRequiredService<DapperContext>();
-//     return context.CreateConnection();
-// });
+builder.Services.AddSingleton(sp =>
+{
+    var context = sp.GetRequiredService<DapperContext>();
+    return context.CreateConnection();
+});
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
 var app = builder.Build();

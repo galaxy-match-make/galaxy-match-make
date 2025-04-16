@@ -1,12 +1,7 @@
-﻿using System.Numerics;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Dapper;
 using galaxy_match_make.Data;
 using galaxy_match_make.Models;
-using Humanizer;
-using Npgsql;
-using NuGet.Protocol.Plugins;
-using System.Data;
 
 namespace galaxy_match_make.Repositories;
 
@@ -31,7 +26,7 @@ public class ProfileRepository : IProfileRepository
     public async Task<ProfileDto> GetProfileById(Guid id)
     {
         var sql = GetProfileSql(true, false);
-        var profile = await QueryProfiles(sql, new { Id = id});
+        var profile = await QueryProfiles(sql, new { Id = id });
 
         return profile.FirstOrDefault();
     }
@@ -138,7 +133,7 @@ public class ProfileRepository : IProfileRepository
     {
         var profileDictionary = new Dictionary<int, ProfileDto>();
         using var connection = _context.CreateConnection();
-        
+
         // Use QueryAsync instead of Query to make this truly asynchronous
         var profiles = await connection.QueryAsync<ProfileDto, string, ProfileDto>(
                 sql,
@@ -223,20 +218,24 @@ public class ProfileRepository : IProfileRepository
                         'InterestName', i.interest_name
                     )
                 ) FILTER (WHERE i.id IS NOT NULL) AS user_interests ";
-            if (pendingLikesClause)
-            {
-                sql += @"FROM reactions r
+        if (pendingLikesClause)
+        {
+            sql += @"FROM reactions r
                           JOIN profiles p ON r.reactor_id = p.user_id ";
-            } else
-            {
-                sql += @" FROM profiles p ";
-            }
+        }
+        else
+        {
+            sql += @" FROM profiles p ";
+        }
 
-            sql += @"
+        sql += @"
+                LEFT JOIN species s ON p.species_id = s.id
+                LEFT JOIN planets pl ON p.planet_id = pl.id
+                LEFT JOIN genders g ON p.gender_id = g.id
                 LEFT JOIN user_interests ui ON p.user_id = ui.user_id
                 LEFT JOIN interests i ON ui.interest_id = i.id";
 
-       if (pendingLikesClause)
+        if (pendingLikesClause)
         {
             sql += @"
                  LEFT JOIN reactions r2 
@@ -275,5 +274,18 @@ public class ProfileRepository : IProfileRepository
             (@UserId, @DisplayName, @Bio, @AvatarUrl)
             RETURNING id;";
     }
-    
+
+
+    public async Task<IEnumerable<LikersDto>> GetUserLikersProfiles(Guid UserId)
+    {
+        var query = @"
+            SELECT r.reactor_id, p.display_name, avatar_url
+            FROM profiles p
+            INNER JOIN reactions r ON r.reactor_id = p.user_id
+            WHERE r.target_id = @UserId
+              AND r.is_positive = true";
+
+        using var connection = _context.CreateConnection();
+        return await connection.QueryAsync<LikersDto>(query, new { UserId });
+    }
 }
