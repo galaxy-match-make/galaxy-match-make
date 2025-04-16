@@ -6,8 +6,6 @@ on:
       - main
       - dev
       - peo/clean-up
-    paths:
-      - 'api/**'
   workflow_dispatch:
     inputs:
       environment:
