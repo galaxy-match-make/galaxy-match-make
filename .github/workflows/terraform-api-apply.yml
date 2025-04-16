@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - peo/deply-api
+      - peo/deploy-api
 
 jobs:
   terraform:
