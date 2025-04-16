@@ -75,13 +75,17 @@ jobs:
           EC2_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           HOSTNAME: ${{ vars.EC2_INSTANCE_PUBLIC_IP }}
           USER_NAME: ${{ secrets.USERNAME }}
+          DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
         uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ env.HOSTNAME }}
           port: 22
           key: ${{ env.EC2_PRIVATE_KEY }}
           username: ${{ env.USER_NAME }}
-          envs: REGISTRY, REPOSITORY, IMAGE_TAG, AWS_REGION, CONTAINER_NAME
+          envs: REGISTRY, REPOSITORY, IMAGE_TAG, AWS_REGION, CONTAINER_NAME, DB_CONNECTION_STRING, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI
           script: |-
             aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin $REGISTRY
             sudo docker pull $REGISTRY/$REPOSITORY:$IMAGE_TAG
@@ -92,4 +96,10 @@ jobs:
             else
                 echo "Container does not exist. No action taken."
             fi
-            sudo docker run -d --name $CONTAINER_NAME -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development $REGISTRY/$REPOSITORY:$IMAGE_TAG
+            sudo docker run -d --name $CONTAINER_NAME -p 8080:8080 \
+              -e ASPNETCORE_ENVIRONMENT=Production \
+              -e ConnectionStrings__DefaultConnection="$DB_CONNECTION_STRING" \
+              -e Google__ClientId="$GOOGLE_CLIENT_ID" \
+              -e Google__ClientSecret="$GOOGLE_CLIENT_SECRET" \
+              -e Google__RedirectUri="$GOOGLE_REDIRECT_URI" \
+              $REGISTRY/$REPOSITORY:$IMAGE_TAG

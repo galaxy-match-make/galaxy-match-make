@@ -69,10 +69,13 @@ jobs:
 
       - name: Login to GitHub CLI
         run: gh auth login --with-token
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Git with GitHub CLI
         run: gh auth setup-git
 
+      # Infrastructure variables from Terraform
       - name: Set AWS_GITHUB_ACTIONS_ROLE_ARN variable
         run: gh variable set AWS_GITHUB_ACTIONS_ROLE_ARN --body "${{ needs.terraform.outputs.role_arn }}"
 
@@ -93,3 +96,18 @@ jobs:
           else
             echo "EC2 instance IP address is not available, skipping HOST secret update."
           fi
+          
+      # Securely extract and set secrets from appsettings.development.json
+      - name: Extract and set database connection string
+        run: |
+          # Write directly to GitHub secrets without storing in shell variable
+          jq -r '.ConnectionStrings.DefaultConnection' api/appsettings.development.json | gh secret set DB_CONNECTION_STRING
+          echo "DB_CONNECTION_STRING secret updated."
+          
+      - name: Set Google OAuth secrets
+        run: |
+          # Write each value directly to GitHub secrets without storing in shell variables
+          jq -r '.Google.ClientId' api/appsettings.development.json | gh secret set GOOGLE_CLIENT_ID
+          jq -r '.Google.ClientSecret' api/appsettings.development.json | gh secret set GOOGLE_CLIENT_SECRET
+          jq -r '.Google.RedirectUri' api/appsettings.development.json | gh secret set GOOGLE_REDIRECT_URI
+          echo "Google OAuth secrets updated."
