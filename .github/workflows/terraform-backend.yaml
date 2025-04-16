@@ -57,4 +57,4 @@ jobs:
       - name: Run Flyway Migrations
         run: |
           docker run --rm --volume ${{ github.workspace }}/backend/flyway/migrations/versioned:/flyway/sql:ro redgate/flyway -url="jdbc:postgresql://${AWS_RDS_ENDPOINT}:5432/${TF_VAR_db_name}" -user="${TF_VAR_db_username}" -password="${TF_VAR_db_password}" migrate
-
+          docker run --rm --volume ${{ github.workspace }}/backend/flyway/migrations/versioned:/flyway/sql:ro redgate/flyway -url="jdbc:postgresql://${AWS_RDS_ENDPOINT}:5432/${TF_VAR_db_name}" -user="${TF_VAR_db_username}" -password="${TF_VAR_db_password}" clean
