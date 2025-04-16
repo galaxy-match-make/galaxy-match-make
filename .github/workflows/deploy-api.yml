@@ -54,6 +54,29 @@ jobs:
           role-to-assume: ${{ vars.AWS_GITHUB_ACTIONS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
+
+      - name: Generate appsettings.Development.json
+        working-directory: api
+        run: |
+          file=appsettings.Development.json
+
+          echo "{" > $file
+          echo '  "ConnectionStrings": {' >> $file
+          echo "    \"DefaultConnection\": \"Host=${{ secrets.AWS_RDS_ENDPOINT }};Port=5432;Database=${{secrets.TF_VAR_DB_NAME}};Username=${{secrets.TF_VAR_DB_PASSWORD}};Password=${{secrets.TF_VAR_DB_PASSWORD}}\"" >> $file
+          echo "  }," >> $file
+          echo '  "Google": {' >> $file
+          echo "    \"ClientId\": \"${{ secrets.GOOGLE_CLIENT_ID }}\"," >> $file
+          echo "    \"ClientSecret\": \"${{ secrets.GOOGLE_CLIENT_SECRET }}\"" >> $file
+          echo "  }," >> $file
+          echo '  "Logging": {' >> $file
+          echo '    "LogLevel": {' >> $file
+          echo '      "Default": "Information",' >> $file
+          echo '      "Microsoft.AspNetCore": "Warning"' >> $file
+          echo '    }' >> $file
+          echo '  },' >> $file
+          echo '  "AllowedHosts": "*"' >> $file
+          echo "}" >> $file
+
       - name: Login to ECR repo
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
