@@ -312,11 +312,18 @@ namespace GalaxyMatchGUI.ViewModels
             }
         }
         
-        public void HandleReactionClick(Contact contact)
+        public void ShowMessages(Contact contact)
         {
             SelectedContact = contact;
-            Console.WriteLine($"Navigating to profile: {contact.DisplayName}");
             NavigationService?.NavigateTo(new MessageRoomViewModel(contact));
         }
+        
+        public void ShowProfile(Contact contact)
+        {
+            SelectedContact = contact;
+            NavigationService?.NavigateTo(new ViewOtherProfileViewModel(contact.UserId));
+        }
+        
+        
     }
 }

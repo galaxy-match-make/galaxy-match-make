@@ -368,17 +368,18 @@
                 <!-- Action Buttons -->
                 <StackPanel Orientation="Horizontal" Spacing="15" HorizontalAlignment="Center" Margin="0,15,0,30">
                     <Button Command="{Binding CancelCommand}"
-                           Width="150"
-                           Height="45"
-                           Background="#4C1D95"
-                           IsEnabled="{Binding !IsLoading}">
+                            Width="150"
+                            Height="45"
+                            Background="#4C1D95"
+                            IsEnabled="{Binding !IsLoading}"
+                            IsVisible="{Binding Source={x:Static models:JwtStorage.Instance}, 
+                           Path=authDetails.ProfileComplete}">
                         <TextBlock Text="Cancel" 
-                                  Foreground="White"
-                                  FontSize="16"
-                                  FontWeight="SemiBold"
-                                  HorizontalAlignment="Center" 
-                                  VerticalAlignment="Center"
-                                  />
+                                   Foreground="White"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center" 
+                                   VerticalAlignment="Center"/>
                     </Button>
                     
                     <Button Command="{Binding SaveProfileCommand}"

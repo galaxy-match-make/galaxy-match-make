@@ -1,0 +1,287 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:GalaxyMatchGUI.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="700"
+        x:Class="GalaxyMatchGUI.Views.ViewOtherProfileView"
+        x:CompileBindings="False"
+        Background="#0D0221">
+
+    <Design.DataContext>
+        <vm:ViewOtherProfileViewModel/>
+    </Design.DataContext>
+
+    <UserControl.Styles>
+        <Style Selector="Button">
+            <Setter Property="CornerRadius" Value="25"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button:pointerover">
+            <Setter Property="RenderTransform" Value="scale(1.05)"/>
+            <Setter Property="Background" Value="#9921E8"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <Canvas>
+            <!-- Space background with stars -->
+            <Ellipse Canvas.Left="40" Canvas.Top="100" Width="4" Height="4" Fill="#FFFFFF" Opacity="0.8"/>
+            <Ellipse Canvas.Left="120" Canvas.Top="80" Width="2" Height="2" Fill="#FFFFFF" Opacity="0.6"/>
+            <Ellipse Canvas.Left="200" Canvas.Top="150" Width="3" Height="3" Fill="#FFFFFF" Opacity="0.7"/>
+            <Ellipse Canvas.Left="300" Canvas.Top="200" Width="2" Height="2" Fill="#FFFFFF" Opacity="0.5"/>
+            <Ellipse Canvas.Left="50" Canvas.Top="300" Width="2" Height="2" Fill="#FFFFFF" Opacity="0.6"/>
+            <Ellipse Canvas.Left="250" Canvas.Top="350" Width="3" Height="3" Fill="#FFFFFF" Opacity="0.8"/>
+            <Ellipse Canvas.Left="350" Canvas.Top="120" Width="4" Height="4" Fill="#FFFFFF" Opacity="0.7"/>
+            <Ellipse Canvas.Left="150" Canvas.Top="400" Width="2" Height="2" Fill="#FFFFFF" Opacity="0.5"/>
+            <Ellipse Canvas.Left="320" Canvas.Top="450" Width="3" Height="3" Fill="#FFFFFF" Opacity="0.7"/>
+            <Ellipse Canvas.Left="80" Canvas.Top="500" Width="2" Height="2" Fill="#FFFFFF" Opacity="0.6"/>
+
+            <!-- Small planet in background -->
+            <Ellipse Canvas.Left="600" Canvas.Top="80" Width="30" Height="30" Opacity="0.6">
+                <Ellipse.Fill>
+                    <RadialGradientBrush>
+                        <GradientStop Color="#FF4D6E" Offset="0"/>
+                        <GradientStop Color="#B92B5C" Offset="1"/>
+                    </RadialGradientBrush>
+                </Ellipse.Fill>
+            </Ellipse>
+            
+            <!-- Another small planet in background -->
+            <Ellipse Canvas.Left="100" Canvas.Top="550" Width="40" Height="40" Opacity="0.5">
+                <Ellipse.Fill>
+                    <RadialGradientBrush>
+                        <GradientStop Color="#4CC9F0" Offset="0"/>
+                        <GradientStop Color="#3F37C9" Offset="1"/>
+                    </RadialGradientBrush>
+                </Ellipse.Fill>
+            </Ellipse>
+        </Canvas>
+
+        <!-- Main Content -->
+        <ScrollViewer>
+            <StackPanel Margin="20" Spacing="15">
+                <!-- Header -->
+                <Border CornerRadius="15" Background="#1E0B45" Padding="20,15" Margin="0,0,0,10">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="15" Color="#000000" Opacity="0.5"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="Profile Details"
+                                   Foreground="#CCCCFF"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding DisplayName}"
+                                   Foreground="#00FF9F"
+                                   FontSize="32"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center">
+                            <TextBlock.Effect>
+                                <BlurEffect Radius="1"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                        <TextBlock Text="{Binding ProfileSummary}"
+                                   Foreground="#9F9FFF"
+                                   FontSize="14"
+                                   FontStyle="Italic"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Loading indicator -->
+                <ProgressBar IsVisible="{Binding IsLoading}"
+                             IsIndeterminate="True"
+                             Height="4"
+                             Margin="40,0" />
+
+                <!-- Status message -->
+                <TextBlock Text="{Binding StatusMessage}"
+                           Foreground="#FF00FF"
+                           IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                           HorizontalAlignment="Center" 
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,10"/>
+
+                <!-- Profile Content -->
+                <Grid ColumnDefinitions="Auto,*" Margin="0,10">
+                    <StackPanel Grid.Column="0" Spacing="10" Width="200">
+                        <Border Width="180" 
+                                Height="180" 
+                                CornerRadius="90" 
+                                Background="#2A0F5B" 
+                                ClipToBounds="True"
+                                HorizontalAlignment="Center">
+                            <Panel>
+                                <Image Source="avares://GalaxyMatchGUI/Assets/alien_profile.png"
+                                       Width="180"
+                                       Height="180"
+                                       IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Stretch="UniformToFill"/> 
+                                
+                                <Image Source="{Binding AvatarImage}"
+                                       Width="180"
+                                       Height="180"
+                                       IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Stretch="UniformToFill"/>
+                            </Panel>
+                        </Border>
+                        
+                        <!-- Species Badge -->
+                        <Border Background="#4C1D95" 
+                                CornerRadius="10" 
+                                Padding="10,5" 
+                                Margin="0,5,0,0"
+                                HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding SpeciesName}" 
+                                      Foreground="#CCCCFF"
+                                      FontWeight="SemiBold"/>
+                        </Border>
+                        
+                        <!-- Planet Badge -->
+                        <Border Background="#5D12D2" 
+                                CornerRadius="10" 
+                                Padding="10,5"
+                                HorizontalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                <PathIcon Data="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" 
+                                        Width="16" Height="16" 
+                                        Foreground="#9F9FFF"/>
+                                <TextBlock Text="{Binding PlanetName}" 
+                                          Foreground="#CCCCFF"
+                                          FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                    
+                    <!-- Profile Details -->
+                    <Border Grid.Column="1" 
+                            CornerRadius="15" 
+                            Background="#1E0B45" 
+                            Padding="20" 
+                            BorderBrush="#5D12D2"
+                            BorderThickness="1">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="20" Color="#5D12D2" Opacity="0.3"/>
+                        </Border.Effect>
+                        
+                        <StackPanel Spacing="15">
+                            <StackPanel>
+                                <TextBlock Text="Bio" 
+                                          Foreground="#00FF9F" 
+                                          FontSize="18" 
+                                          FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding Bio}" 
+                                          Foreground="#CCCCFF" 
+                                          TextWrapping="Wrap"
+                                          Margin="0,5,0,0"
+                                          FontSize="14"/>
+                                <TextBlock Text="No bio provided" 
+                                          Foreground="#9F9FFF" 
+                                          FontStyle="Italic"
+                                          IsVisible="{Binding Bio, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
+                            </StackPanel>
+           
+                            <StackPanel>
+                                <TextBlock Text="Cosmic Details" 
+                                          Foreground="#00FF9F" 
+                                          FontSize="18" 
+                                          FontWeight="SemiBold"/>
+                                
+                                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" Margin="0,5,0,0">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" 
+                                              Text="Gender:" 
+                                              Foreground="#9F9FFF" 
+                                              Margin="0,0,10,5"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" 
+                                              Text="{Binding GenderName}" 
+                                              Foreground="#CCCCFF"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" 
+                                              Text="Height:" 
+                                              Foreground="#9F9FFF" 
+                                              Margin="0,0,10,5"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" 
+                                              Text="{Binding HeightInGalacticInches, StringFormat='{}{0} Galactic Inches'}" 
+                                              Foreground="#CCCCFF"/>
+                                    
+                                    <TextBlock Grid.Row="2" Grid.Column="0" 
+                                              Text="Age:" 
+                                              Foreground="#9F9FFF" 
+                                              Margin="0,0,10,5"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" 
+                                              Text="{Binding GalacticAge, StringFormat='{}{0} Galactic Years'}" 
+                                              Foreground="#CCCCFF"/>
+                                </Grid>
+                            </StackPanel>
+                            
+                            <StackPanel>
+                                <TextBlock Text="Cosmic Interests" 
+                                          Foreground="#00FF9F" 
+                                          FontSize="18" 
+                                          FontWeight="SemiBold"/>
+                                
+                                <ItemsControl ItemsSource="{Binding UserInterests}" Margin="0,5,0,0">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#5D12D2" 
+                                                    CornerRadius="20" 
+                                                    Padding="12,6" 
+                                                    Margin="0,0,8,8">
+                                                <TextBlock Text="{Binding InterestName}" 
+                                                          Foreground="White"
+                                                          FontSize="12"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                
+                                <TextBlock Text="No interests listed" 
+                                          Foreground="#9F9FFF" 
+                                          FontStyle="Italic"
+                                          IsVisible="{Binding !UserInterests.Count}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+                
+                <!-- Back Button -->
+                <StackPanel HorizontalAlignment="Center" Margin="0,15,0,30">
+                    <Button Command="{Binding GoBackCommand}"
+                           Width="150"
+                           Height="45"
+                           Background="#4C1D95">
+                        <TextBlock Text="Back" 
+                                  Foreground="White"
+                                  FontSize="16"
+                                  FontWeight="SemiBold"
+                                  HorizontalAlignment="Center" 
+                                  VerticalAlignment="Center"/>
+                    </Button>
+                </StackPanel>
+                
+                <!-- Footer -->
+                <TextBlock Text="© 2025 Intergalactic Dating Solutions"
+                           Foreground="#6D6A75"
+                           FontSize="10"
+                           HorizontalAlignment="Center"
+                           Margin="0,20,0,10"/>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

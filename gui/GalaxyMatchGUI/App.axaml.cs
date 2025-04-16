@@ -50,6 +50,7 @@ public partial class App : Application
 
             navigationService.RegisterView<MessageRoomViewModel, MessageRoomView>();
             navigationService.RegisterView<ProfileViewModel, ProfileView>();
+            navigationService.RegisterView<ViewOtherProfileViewModel, ViewOtherProfileView>();
             
             services.AddSingleton<INavigationService>(navigationService);
             

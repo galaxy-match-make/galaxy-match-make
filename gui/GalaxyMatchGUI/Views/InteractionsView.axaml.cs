@@ -18,11 +18,19 @@ public partial class InteractionsView : UserControl
     {
         AvaloniaXamlLoader.Load(this);
     }
-    private void OnReactionPointerPressed(object sender, PointerPressedEventArgs e)
+    private void OnShowMessagesPressed(object sender, PointerPressedEventArgs e)
     {
         if (sender is Border border && border.DataContext is Contact contact)
         {
-            contact.ReactionClickedCommand.Execute(null);
+            contact.ShowMessagesCommand.Execute(null);
+        }
+    }
+    
+    private void OnShowProfilePressed(object sender, PointerPressedEventArgs e)
+    {
+        if (sender is Border border && border.DataContext is Contact contact)
+        {
+            contact.ShowProfileCommand.Execute(null);
         }
     }
 }
