@@ -93,3 +93,25 @@ jobs:
           else
             echo "EC2 instance IP address is not available, skipping HOST secret update."
           fi
+
+      - name: Generate appsettings.Development.json
+      working-directory: api
+      run: |
+        file=appsettings.Development.json
+
+        echo "{" > $file
+        echo '  "ConnectionStrings": {' >> $file
+        echo "    \"DefaultConnection\": \"Host=${{ secrets.HOST }};Port=5432;Database=${{secrets.TF_VAR_DB_NAME}};Username=${{secrets.TF_VAR_DB_PASSWORD}};Password=${{secrets.TF_VAR_DB_PASSWORD}}\"" >> $file
+        echo "  }," >> $file
+        echo '  "Google": {' >> $file
+        echo "    \"ClientId\": \"${{ secrets.GOOGLE_CLIENT_ID }}\"," >> $file
+        echo "    \"ClientSecret\": \"${{ secrets.GOOGLE_CLIENT_SECRET }}\"" >> $file
+        echo "  }," >> $file
+        echo '  "Logging": {' >> $file
+        echo '    "LogLevel": {' >> $file
+        echo '      "Default": "Information",' >> $file
+        echo '      "Microsoft.AspNetCore": "Warning"' >> $file
+        echo '    }' >> $file
+        echo '  },' >> $file
+        echo '  "AllowedHosts": "*"' >> $file
+        echo "}" >> $file
