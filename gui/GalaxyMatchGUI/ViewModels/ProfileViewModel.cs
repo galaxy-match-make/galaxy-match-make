@@ -164,13 +164,45 @@ namespace GalaxyMatchGUI.ViewModels
                 
                 // Create the data URL format
                 AvatarUrl = $"data:{mimeType};base64,{base64Image}";
+
+                await LoadAvatarImageAsync();
                 
                 UploadStatusMessage = "Image uploaded successfully";
+                
             }
             catch (Exception ex)
             {
                 UploadStatusMessage = $"Error uploading image: {ex.Message}";
                 Console.WriteLine($"Image upload error: {ex}");
+            }
+        }
+
+        private async Task LoadAvatarImageAsync()
+        {
+            if (string.IsNullOrEmpty(AvatarUrl))
+            {
+                // Load default avatar
+                AvatarImage = new Bitmap("avares://GalaxyMatchGUI/Assets/alien_profile.png");
+                return;
+            }
+
+            try
+            {
+                int commaIndex = AvatarUrl.IndexOf(',');
+                if (commaIndex > 0)
+                {
+                    string data = AvatarUrl.Substring(commaIndex + 1);
+                    byte[] bytes = Convert.FromBase64String(data);
+                    
+                    using var stream = new MemoryStream(bytes);
+                    AvatarImage = new Bitmap(stream);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading avatar: {ex.Message}");
+                // Fallback to default image
+                AvatarImage = new Bitmap("avares://GalaxyMatchGUI/Assets/alien_profile.png");
             }
         }
 

@@ -65,6 +65,8 @@ namespace GalaxyMatchGUI.Controls
                     if (bitmap != null)
                     {
                         base.Source = bitmap;
+                    }
+                }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error loading image from {newSource}: {ex.Message}");

@@ -23,7 +23,8 @@ namespace GalaxyMatchGUI
             {
                 return icon;
             }
-            return "❓"; 
+            return "❓";
+        } 
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
