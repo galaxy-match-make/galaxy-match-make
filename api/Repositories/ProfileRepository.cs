@@ -2,6 +2,7 @@
 using Dapper;
 using galaxy_match_make.Data;
 using galaxy_match_make.Models;
+using Npgsql;
 
 namespace galaxy_match_make.Repositories;
 
