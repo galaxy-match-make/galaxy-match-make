@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization;
 
 namespace GalaxyMatchGUI.Models
 {
@@ -7,9 +8,12 @@ namespace GalaxyMatchGUI.Models
         public int Id { get; set; }
         public Guid UserId { get; set; }
         public int InterestId { get; set; }
+        public string InterestName { get; set; } = string.Empty;
         
-        // Navigation properties
-        public required User User { get; set; }
-        public required Interest Interest { get; set; }
+        // Navigation properties - ignore these during serialization/deserialization
+        [JsonIgnore]
+        public User? User { get; set; }
+        [JsonIgnore]
+        public Interest? Interest { get; set; }
     }
 }

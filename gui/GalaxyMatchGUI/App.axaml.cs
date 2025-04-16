@@ -52,7 +52,9 @@ public partial class App : Application
             // Register views with navigation service
             navigationService.RegisterView<LoginViewModel, LoginView>();
             navigationService.RegisterView<MatchingViewModel, MatchingView>();
+
             navigationService.RegisterView<InteractionsViewModel, InteractionsView>();
+
             navigationService.RegisterView<MessageRoomViewModel, MessageRoomView>();
             navigationService.RegisterView<ProfileViewModel, ProfileView>();
             
@@ -62,9 +64,11 @@ public partial class App : Application
             // Build service provider after navigation service is registered
             ServiceProvider = services.BuildServiceProvider();
             
+
             // Navigate to login view
             navigationService.NavigateTo<LoginViewModel>();
             Settings = AppSettings.Load();
+
         }
 
         base.OnFrameworkInitializationCompleted();

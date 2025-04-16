@@ -60,7 +60,7 @@ namespace GalaxyMatchGUI.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error sending reaction: {ex.Message}");
+                Console.WriteLine($"Exception in SendReactionAsync: {ex.Message}");
                 return false;
             }
         }

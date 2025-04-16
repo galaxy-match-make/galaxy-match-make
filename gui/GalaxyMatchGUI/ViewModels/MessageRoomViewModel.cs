@@ -101,7 +101,6 @@ public partial class MessageRoomViewModel : ViewModelBase
                 "http://localhost:5284/api/messages", 
                 messageToSend);
 
-            CurrentMessage = $"{response.StatusCode}";
                 
             if (response.IsSuccessStatusCode)
             {

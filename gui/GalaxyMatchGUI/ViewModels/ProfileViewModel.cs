@@ -262,8 +262,9 @@ namespace GalaxyMatchGUI.ViewModels
             }
         }
 
+        // Fix: Make sure the method signature matches what's expected
         [RelayCommand]
-        public async Task ToggleInterest(Interest interest)
+        public void ToggleInterest(Interest interest)
         {
             if (SelectedInterests.Contains(interest))
             {
@@ -273,6 +274,9 @@ namespace GalaxyMatchGUI.ViewModels
             {
                 SelectedInterests.Add(interest);
             }
+            
+            // Force UI update (might help in some cases)
+            OnPropertyChanged(nameof(SelectedInterests));
         }
 
         [RelayCommand]

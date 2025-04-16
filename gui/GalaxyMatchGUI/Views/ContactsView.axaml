@@ -1,0 +1,363 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:GalaxyMatchGUI.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignWidth="400"
+             d:DesignHeight="600"
+             x:Class="GalaxyMatchGUI.Views.ContactsView"
+             x:DataType="vm:ContactsViewModel">
+
+    <Grid RowDefinitions="Auto,*" Background="#0D0221" Margin="20">
+        
+        <!-- Top content -->
+        <StackPanel Spacing="20" Grid.Row="0">
+            <!-- Header -->
+            <Border CornerRadius="10" Background="#1E0B45" Padding="15">
+                <TextBlock Text="Cosmic Connections" 
+                           FontSize="24"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           Foreground="#00FF9F"
+                           TextAlignment="Center"/>
+            </Border>
+
+            <!-- Tab Control -->
+            <TabControl Background="Transparent" Padding="0">
+                <TabControl.Styles>
+                    <Style Selector="TabItem">
+                        <Setter Property="Background" Value="#1E0B45"/>
+                        <Setter Property="Foreground" Value="#9F9FFF"/>
+                        <Setter Property="Margin" Value="0,0,2,0"/>
+                        <Setter Property="Padding" Value="15,10"/>
+                        <Setter Property="CornerRadius" Value="5 5 0 0"/>
+                        <Setter Property="FontSize" Value="14"/>
+                    </Style>
+                    <Style Selector="TabItem:selected">
+                        <Setter Property="Background" Value="#5D12D2"/>
+                        <Setter Property="Foreground" Value="White"/>
+                    </Style>
+                </TabControl.Styles>
+
+                <!-- Messages Tab -->
+                <TabItem Header="Messages">
+                    <Grid RowDefinitions="Auto,*">
+                        <!-- Controls -->
+                        <StackPanel Grid.Row="0" Spacing="10" Margin="0,10">
+                            <Button Content="⟳ Refresh Messages"
+                                    Command="{Binding RefreshMessagesCommand}"
+                                    IsEnabled="{Binding !IsLoadingMessages}"
+                                    HorizontalAlignment="Center"
+                                    Padding="20,8"
+                                    MinWidth="180"
+                                    FontSize="14">
+                                <Button.Styles>
+                                    <Style Selector="Button">
+                                        <Setter Property="Background" Value="#7B2CBF"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                        <Setter Property="CornerRadius" Value="25"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Effect">
+                                            <DropShadowEffect BlurRadius="8" Color="#9D4EDD" Opacity="0.6"/>
+                                        </Setter>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                    </Style>
+                                    <Style Selector="Button:pointerover">
+                                        <Setter Property="Background" Value="#9D4EDD"/>
+                                    </Style>
+                                </Button.Styles>
+                            </Button>
+                            
+                            <!-- Status Message -->
+                            <TextBlock Text="{Binding MessagesStatusMessage}"
+                                       IsVisible="{Binding MessagesStatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                       HorizontalAlignment="Center"
+                                       Foreground="#9F9FFF"
+                                       FontStyle="Italic"/>
+                            
+                            <!-- Loading Bar -->
+                            <ProgressBar IsIndeterminate="True"
+                                         IsVisible="{Binding IsLoadingMessages}"
+                                         Height="4"
+                                         Foreground="#00FF9F"
+                                         Margin="0,0,0,10">
+                                <ProgressBar.Styles>
+                                    <Style Selector="ProgressBar">
+                                        <Setter Property="Background" Value="#2A0F5B"/>
+                                    </Style>
+                                </ProgressBar.Styles>
+                            </ProgressBar>
+                        </StackPanel>
+                        
+                        <!-- Messages List -->
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding MessageContacts}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="10"
+                                                Background="#1E0B45"
+                                                Margin="0,5"
+                                                Padding="10"
+                                                BorderBrush="#5D12D2"
+                                                BorderThickness="1"
+                                                Cursor="Hand">
+                                            <Grid ColumnDefinitions="Auto,*">
+                                                <!-- Avatar -->
+                                                <Border Grid.Column="0" Width="50" Height="50" CornerRadius="25" Background="#2A0F5B"
+                                                        BorderBrush="#5D12D2" BorderThickness="2" Margin="0,0,15,0">
+                                                    <Image Source="{Binding AvatarUrl, TargetNullValue='avares://GalaxyMatchGUI/Assets/default-avatar.png'}"
+                                                           Stretch="UniformToFill">
+                                                        <Image.Effect>
+                                                            <DropShadowEffect BlurRadius="8" Color="#5D12D2" Opacity="0.6"/>
+                                                        </Image.Effect>
+                                                    </Image>
+                                                </Border>
+
+                                                <!-- Name and Message -->
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="5">
+                                                    <TextBlock Text="{Binding DisplayName}" 
+                                                               FontSize="16" 
+                                                               FontWeight="SemiBold" 
+                                                               Foreground="White"/>
+                                                    <TextBlock Text="Tap to view conversation" 
+                                                               FontSize="12" 
+                                                               Foreground="#9F9FFF"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </TabItem>
+
+                <!-- Sent Requests Tab -->
+                <TabItem Header="Sent Requests">
+                    <Grid RowDefinitions="Auto,*">
+                        <!-- Controls -->
+                        <StackPanel Grid.Row="0" Spacing="10" Margin="0,10">
+                            <Button Content="⟳ Refresh Sent Requests"
+                                    Command="{Binding RefreshSentRequestsCommand}"
+                                    IsEnabled="{Binding !IsLoadingSentRequests}"
+                                    HorizontalAlignment="Center"
+                                    Padding="20,8"
+                                    MinWidth="180"
+                                    FontSize="14">
+                                <Button.Styles>
+                                    <Style Selector="Button">
+                                        <Setter Property="Background" Value="#7B2CBF"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                        <Setter Property="CornerRadius" Value="25"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Effect">
+                                            <DropShadowEffect BlurRadius="8" Color="#9D4EDD" Opacity="0.6"/>
+                                        </Setter>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                    </Style>
+                                    <Style Selector="Button:pointerover">
+                                        <Setter Property="Background" Value="#9D4EDD"/>
+                                    </Style>
+                                </Button.Styles>
+                            </Button>
+                            
+                            <!-- Status Message -->
+                            <TextBlock Text="{Binding SentRequestsStatusMessage}"
+                                       IsVisible="{Binding SentRequestsStatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                       HorizontalAlignment="Center"
+                                       Foreground="#9F9FFF"
+                                       FontStyle="Italic"/>
+                            
+                            <!-- Loading Bar -->
+                            <ProgressBar IsIndeterminate="True"
+                                         IsVisible="{Binding IsLoadingSentRequests}"
+                                         Height="4"
+                                         Foreground="#00FF9F"
+                                         Margin="0,0,0,10">
+                                <ProgressBar.Styles>
+                                    <Style Selector="ProgressBar">
+                                        <Setter Property="Background" Value="#2A0F5B"/>
+                                    </Style>
+                                </ProgressBar.Styles>
+                            </ProgressBar>
+                        </StackPanel>
+                        
+                        <!-- Sent Requests List -->
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding SentRequestContacts}" >
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="10"
+                                                Background="#1E0B45"
+                                                Margin="0,5"
+                                                Padding="10"
+                                                BorderBrush="#5D12D2"
+                                                BorderThickness="1">
+                                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                                <!-- Avatar -->
+                                                <Border Grid.Column="0" Width="50" Height="50" CornerRadius="25" Background="#2A0F5B"
+                                                        BorderBrush="#5D12D2" BorderThickness="2" Margin="0,0,15,0">
+                                                    <Image Source="{Binding AvatarUrl, TargetNullValue='avares://GalaxyMatchGUI/Assets/default-avatar.png'}"
+                                                           Stretch="UniformToFill">
+                                                        <Image.Effect>
+                                                            <DropShadowEffect BlurRadius="8" Color="#5D12D2" Opacity="0.6"/>
+                                                        </Image.Effect>
+                                                    </Image>
+                                                </Border>
+
+                                                <!-- Name -->
+                                                <TextBlock Grid.Column="1" 
+                                                           Text="{Binding DisplayName}" 
+                                                           FontSize="16" 
+                                                           FontWeight="SemiBold" 
+                                                           Foreground="White"
+                                                           VerticalAlignment="Center"/>
+
+                                                <!-- Cancel Button -->
+                                                <Button Grid.Column="2"
+                                                        Command="{Binding CancelRequestCommand, 
+                                                        RelativeSource={RelativeSource AncestorType=vm:ContactsViewModel}}"
+                                                        Content="Cancel"
+                                                        Foreground="White"
+                                                        Background="#AA336A"
+                                                        Padding="12,6"
+                                                        CornerRadius="20"
+                                                        VerticalAlignment="Center">
+                                                    <Button.Styles>
+                                                        <Style Selector="Button:pointerover">
+                                                            <Setter Property="Background" Value="#D65DB1"/>
+                                                        </Style>
+                                                    </Button.Styles>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </TabItem>
+
+                <!-- Received Requests Tab -->
+                <TabItem Header="Received Requests">
+                    <Grid RowDefinitions="Auto,*">
+                        <!-- Controls -->
+                        <StackPanel Grid.Row="0" Spacing="10" Margin="0,10">
+                            <Button Content="⟳ Refresh Received Requests"
+                                    Command="{Binding RefreshReceivedRequestsCommand}"
+                                    IsEnabled="{Binding !IsLoadingReceivedRequests}"
+                                    HorizontalAlignment="Center"
+                                    Padding="20,8"
+                                    MinWidth="180"
+                                    FontSize="14">
+                                <Button.Styles>
+                                    <Style Selector="Button">
+                                        <Setter Property="Background" Value="#7B2CBF"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                        <Setter Property="CornerRadius" Value="25"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Effect">
+                                            <DropShadowEffect BlurRadius="8" Color="#9D4EDD" Opacity="0.6"/>
+                                        </Setter>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                    </Style>
+                                    <Style Selector="Button:pointerover">
+                                        <Setter Property="Background" Value="#9D4EDD"/>
+                                    </Style>
+                                </Button.Styles>
+                            </Button>
+                            
+                            <!-- Status Message -->
+                            <TextBlock Text="{Binding ReceivedRequestsStatusMessage}"
+                                       IsVisible="{Binding ReceivedRequestsStatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                       HorizontalAlignment="Center"
+                                       Foreground="#9F9FFF"
+                                       FontStyle="Italic"/>
+                            
+                            <!-- Loading Bar -->
+                            <ProgressBar IsIndeterminate="True"
+                                         IsVisible="{Binding IsLoadingReceivedRequests}"
+                                         Height="4"
+                                         Foreground="#00FF9F"
+                                         Margin="0,0,0,10">
+                                <ProgressBar.Styles>
+                                    <Style Selector="ProgressBar">
+                                        <Setter Property="Background" Value="#2A0F5B"/>
+                                    </Style>
+                                </ProgressBar.Styles>
+                            </ProgressBar>
+                        </StackPanel>
+                        
+                        <!-- Received Requests List -->
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding ReceivedRequestContacts}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="10"
+                                                Background="#1E0B45"
+                                                Margin="0,5"
+                                                Padding="10"
+                                                BorderBrush="#5D12D2"
+                                                BorderThickness="1">
+                                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                                <!-- Avatar -->
+                                                <Border Grid.Column="0" Width="50" Height="50" CornerRadius="25" Background="#2A0F5B"
+                                                        BorderBrush="#5D12D2" BorderThickness="2" Margin="0,0,15,0">
+                                                    <Image Source="{Binding AvatarUrl, TargetNullValue='avares://GalaxyMatchGUI/Assets/default-avatar.png'}"
+                                                           Stretch="UniformToFill">
+                                                        <Image.Effect>
+                                                            <DropShadowEffect BlurRadius="8" Color="#5D12D2" Opacity="0.6"/>
+                                                        </Image.Effect>
+                                                    </Image>
+                                                </Border>
+
+                                                <!-- Name -->
+                                                <TextBlock Grid.Column="1" 
+                                                           Text="{Binding DisplayName}" 
+                                                           FontSize="16" 
+                                                           FontWeight="SemiBold" 
+                                                           Foreground="White"
+                                                           VerticalAlignment="Center"/>
+
+                                                <!-- Accept Button -->
+                                                <Button Grid.Column="2"
+                                                        Command="{Binding AcceptRequestCommand, 
+                                                        RelativeSource={RelativeSource AncestorType=vm:ContactsViewModel}}"
+                                                        CommandParameter="{Binding}"
+                                                        Content="Accept"
+                                                        Foreground="White"
+                                                        Background="#4CAF50"
+                                                        Padding="12,6"
+                                                        CornerRadius="20"
+                                                        VerticalAlignment="Center">
+                                                    <Button.Styles>
+                                                        <Style Selector="Button:pointerover">
+                                                            <Setter Property="Background" Value="#6ABF6E"/>
+                                                        </Style>
+                                                    </Button.Styles>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </StackPanel>
+        
+        <!-- Empty state message -->
+        <TextBlock Grid.Row="1" 
+                   HorizontalAlignment="Center" 
+                   VerticalAlignment="Center"
+                   Text="{Binding EmptyStateMessage}"
+                   IsVisible="{Binding ShowEmptyState}"
+                   Foreground="#9F9FFF"
+                   FontSize="18"
+                   TextAlignment="Center"
+                   TextWrapping="Wrap"
+                   Margin="20"/>
+    </Grid>
+</UserControl>

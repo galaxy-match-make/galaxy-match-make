@@ -1,7 +1,12 @@
-﻿using System.Text.Json;
+﻿using System.Numerics;
+using System.Text.Json;
 using Dapper;
 using galaxy_match_make.Data;
 using galaxy_match_make.Models;
+using Humanizer;
+using Npgsql;
+using NuGet.Protocol.Plugins;
+using System.Data;
 
 namespace galaxy_match_make.Repositories;
 
@@ -24,7 +29,7 @@ public class ProfileRepository : IProfileRepository
     public async Task<ProfileDto> GetProfileById(Guid id)
     {
         var sql = GetProfileSql(true, false);
-        var profile = await QueryProfiles(sql, new { Id = id });
+        var profile = await QueryProfiles(sql, new { Id = id});
 
         return profile.FirstOrDefault();
     }
@@ -34,10 +39,10 @@ public class ProfileRepository : IProfileRepository
         var sql = GetUpsertProfileSql(true);
 
         using var connection = _context.CreateConnection();
-        using var transaction = connection.BeginTransaction();
+        // using var transaction = connection.BeginTransaction();
 
-        try
-        {
+        // try
+        // {
             var updatedProfileId = await connection.ExecuteScalarAsync<int>(sql, new
             {
                 UserId = id,
@@ -49,10 +54,10 @@ public class ProfileRepository : IProfileRepository
                 GenderId = profile.GenderId,
                 HeightInGalacticInches = profile.HeightInGalacticInches,
                 GalacticDateOfBirth = profile.GalacticDateOfBirth
-            }, transaction);
+            });
 
             var deleteInterestsSql = "DELETE FROM user_interests WHERE user_id = @UserId;";
-            await connection.ExecuteAsync(deleteInterestsSql, new { UserId = id }, transaction);
+            await connection.ExecuteAsync(deleteInterestsSql, new { UserId = id });
 
             if (profile.UserInterestIds != null && profile.UserInterestIds.Any())
             {
@@ -66,18 +71,18 @@ public class ProfileRepository : IProfileRepository
                     {
                         UserId = id,
                         InterestId = interestId
-                    }, transaction);
+                    });
                 }
             }
 
-            transaction.Commit();
+            // transaction.Commit();
             return await GetProfileById(id);
-        }
-        catch
-        {
-            transaction.Rollback();
-            throw;
-        }
+        // }
+        // catch
+        // {
+        //     transaction.Rollback();
+        //     throw;
+        // }
     }
 
     public async Task<ProfileDto> CreateProfile(Guid id, CreateProfileDto profile)
@@ -85,10 +90,10 @@ public class ProfileRepository : IProfileRepository
         var sql = GetUpsertProfileSql(false);
 
         using var connection = _context.CreateConnection();
-        using var transaction = connection.BeginTransaction();
+        // using var transaction = connection.BeginTransaction();
 
-        try
-        {
+        // try
+        // {
             var profileId = await connection.ExecuteScalarAsync<int>(sql, new
             {
                 UserId = id,
@@ -100,7 +105,7 @@ public class ProfileRepository : IProfileRepository
                 GenderId = profile.GenderId,
                 HeightInGalacticInches = profile.HeightInGalacticInches,
                 GalacticDateOfBirth = profile.GalacticDateOfBirth
-            }, transaction);
+            });
 
             if (profile.UserInterestIds != null && profile.UserInterestIds.Any())
             {
@@ -114,18 +119,18 @@ public class ProfileRepository : IProfileRepository
                     {
                         UserId = id,
                         InterestId = interestId
-                    }, transaction);
+                    });
                 }
             }
 
-            transaction.Commit();
+            // transaction.Commit();
             return await GetProfileById(id);
-        }
-        catch
-        {
-            transaction.Rollback();
-            throw;
-        }
+        // }
+        // catch
+        // {
+        //     transaction.Rollback();
+        //     throw;
+        // }
     }
 
     public async Task<IEnumerable<ProfileDto>> GetPendingMatchesByUserId(Guid id)
@@ -141,7 +146,7 @@ public class ProfileRepository : IProfileRepository
     {
         var profileDictionary = new Dictionary<int, ProfileDto>();
         using var connection = _context.CreateConnection();
-
+        
         // Use QueryAsync instead of Query to make this truly asynchronous
         var profiles = await connection.QueryAsync<ProfileDto, SpeciesDto, PlanetDto, GenderDto, string, ProfileDto>(
                 sql,
@@ -242,24 +247,23 @@ public class ProfileRepository : IProfileRepository
                         'InterestName', i.interest_name
                     )
                 ) FILTER (WHERE i.id IS NOT NULL) AS user_interests ";
-        if (pendingLikesClause)
-        {
-            sql += @"FROM reactions r
+            if (pendingLikesClause)
+            {
+                sql += @"FROM reactions r
                           JOIN profiles p ON r.reactor_id = p.user_id ";
-        }
-        else
-        {
-            sql += @" FROM profiles p ";
-        }
+            } else
+            {
+                sql += @" FROM profiles p ";
+            }
 
-        sql += @"
+            sql += @"
                 LEFT JOIN species s ON p.species_id = s.id
                 LEFT JOIN planets pl ON p.planet_id = pl.id
                 LEFT JOIN genders g ON p.gender_id = g.id
                 LEFT JOIN user_interests ui ON p.user_id = ui.user_id
                 LEFT JOIN interests i ON ui.interest_id = i.id";
 
-        if (pendingLikesClause)
+       if (pendingLikesClause)
         {
             sql += @"
                  LEFT JOIN reactions r2 
@@ -308,17 +312,8 @@ public class ProfileRepository : IProfileRepository
             RETURNING id;";
     }
 
-
-    public async Task<IEnumerable<LikersDto>> GetUserLikersProfiles(Guid UserId)
+    public Task<IEnumerable<LikersDto>> GetUserLikersProfiles(Guid id)
     {
-        var query = @"
-            SELECT r.reactor_id, p.display_name, avatar_url
-            FROM profiles p
-            INNER JOIN reactions r ON r.reactor_id = p.user_id
-            WHERE r.target_id = @UserId
-              AND r.is_positive = true";
-
-        using var connection = _context.CreateConnection();
-        return await connection.QueryAsync<LikersDto>(query, new { UserId });
+        throw new NotImplementedException();
     }
 }

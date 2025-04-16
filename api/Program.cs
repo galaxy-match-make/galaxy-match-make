@@ -59,6 +59,7 @@ builder.Services.AddScoped<IInteractionRepository, InteractionRepository>();
 builder.Services.AddScoped<IInterestRepository, InterestRepository>();
 builder.Services.AddScoped<ISpeciesRepository, SpeciesRepository>();
 builder.Services.AddScoped<IGenderRepository, GenderRepository>();
+builder.Services.AddScoped<IReactionRepository, ReactionsRepository>();
 
 builder.Services.AddScoped<IGenericRepository<CharacteristicsDto>, GenericRepository<CharacteristicsDto>>();
 builder.Services.AddScoped<IGenericRepository<ProfileAttributesDto>, GenericRepository<ProfileAttributesDto>>();

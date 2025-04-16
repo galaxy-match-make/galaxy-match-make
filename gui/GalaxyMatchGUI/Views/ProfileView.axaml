@@ -297,8 +297,8 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Button Command="{Binding DataContext.ToggleInterestCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                           CommandParameter="{Binding}"
-                                           Margin="5">
+                                        CommandParameter="{Binding}"
+                                        Margin="5">
                                         <Button.Background>
                                             <MultiBinding Converter="{StaticResource InterestSelectedConverter}">
                                                 <Binding Path="."/>
@@ -306,8 +306,8 @@
                                             </MultiBinding>
                                         </Button.Background>
                                         <TextBlock Text="{Binding InterestName}" 
-                                                  Padding="10,5" 
-                                                  Foreground="White"/>
+                                                Padding="10,5" 
+                                                Foreground="White"/>
                                     </Button>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>

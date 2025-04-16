@@ -17,6 +17,7 @@
 
     <UserControl.Resources>
         <conv:ImageSourceConverter x:Key="ImageSourceConverter"/>
+        <conv:DoubleMultiplierConverter x:Key="DoubleMultiplierConverter"/>
     </UserControl.Resources>
 
     <UserControl.Styles>
@@ -36,18 +37,45 @@
         <Style Selector="Button.actionButton:pointerover">
 			<Setter Property="RenderTransform" Value="scale(1.1)"/>
 		</Style>
+        
+        <!-- Enhanced responsive profile card styles with width breakpoints -->
         <Style Selector="Border.profileCard">
+            <Setter Property="Width" Value="NaN"/>
+            <Setter Property="MaxWidth" Value="450"/>
+            <Setter Property="MinWidth" Value="300"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="Transitions">
                 <Transitions>
                     <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3"/>
                     <ThicknessTransition Property="Margin" Duration="0:0:0.3"/>
+                    <DoubleTransition Property="MaxWidth" Duration="0:0:0.3"/>
                 </Transitions>
             </Setter>
         </Style>
+        
+        <Style Selector="Border.profileCard">
+            <Style.Resources>
+                <OnPlatform x:Key="ProfileCardSmallWidth" Default="350">
+                    <On Options="Windows" Content="350"/>
+                    <On Options="macOS" Content="300"/>
+                </OnPlatform>
+                <OnPlatform x:Key="ProfileCardMediumWidth" Default="450">
+                    <On Options="Windows" Content="450"/>
+                    <On Options="macOS" Content="400"/>
+                </OnPlatform>
+                <OnPlatform x:Key="ProfileCardLargeWidth" Default="600">
+                    <On Options="Windows" Content="600"/>
+                    <On Options="macOS" Content="550"/>
+                </OnPlatform>
+            </Style.Resources>
+        </Style>
+        
         <Style Selector="Border.profileCard:pointerover">
             <Setter Property="RenderTransform" Value="scale(1.02)"/>
             <Setter Property="Margin" Value="0,20,0,0"/>
         </Style>
+        
+        <!-- Canvas and star styles -->
         <Style Selector="Canvas.starsCanvas">
             <Style.Animations>
                 <Animation Duration="0:0:30" IterationCount="Infinite">
@@ -247,7 +275,7 @@
 
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" MinHeight="250" MaxHeight="350"/>
+                        <RowDefinition Height="{Binding $parent[Border].Bounds.Height, Converter={StaticResource DoubleMultiplierConverter}, ConverterParameter=0.8}"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     
@@ -428,7 +456,7 @@
             </Border>
         </Grid>
 
-        <!-- Action Buttons with improved positioning for responsiveness -->
+        <!-- Action Buttons  -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" 
                     HorizontalAlignment="Center" 
                     VerticalAlignment="Bottom" 
