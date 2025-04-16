@@ -230,9 +230,6 @@ public class ProfileRepository : IProfileRepository
         }
 
         sql += @"
-                LEFT JOIN species s ON p.species_id = s.id
-                LEFT JOIN planets pl ON p.planet_id = pl.id
-                LEFT JOIN genders g ON p.gender_id = g.id
                 LEFT JOIN user_interests ui ON p.user_id = ui.user_id
                 LEFT JOIN interests i ON ui.interest_id = i.id";
 

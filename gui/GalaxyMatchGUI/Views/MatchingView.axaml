@@ -314,22 +314,22 @@
                                             FontWeight="Bold" 
                                             Foreground="#FFFFFF"
                                             Margin="0,0,10,0"/>
-                                    <TextBlock Text="{Binding CurrentProfile.GalacticDateOfBirth}" 
-                                            FontSize="26" 
-                                            FontWeight="Bold" 
-                                            Foreground="#CCCCFF"
-                                            Margin="0,0,10,0"/>
-                                    <Border Background="#7B2CBF" CornerRadius="10" Padding="8,2" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding CurrentProfile.Species.SpeciesName}" 
-                                                FontSize="14" 
-                                                Foreground="White"/>
-                                    </Border>
+                                    <!-- <TextBlock Text="{Binding CurrentProfile.GalacticDateOfBirth}"  -->
+                                    <!--         FontSize="26"  -->
+                                    <!--         FontWeight="Bold"  -->
+                                    <!--         Foreground="#CCCCFF" -->
+                                    <!--         Margin="0,0,10,0"/> -->
+                                    <!-- <Border Background="#7B2CBF" CornerRadius="10" Padding="8,2" VerticalAlignment="Center"> -->
+                                    <!--     <TextBlock Text="{Binding CurrentProfile.Species.SpeciesName}"  -->
+                                    <!--             FontSize="14"  -->
+                                    <!--             Foreground="White"/> -->
+                                    <!-- </Border> -->
                                 </WrapPanel>
 
-                                <StackPanel Orientation="Horizontal" Spacing="5" Margin="0,2,0,5">
-                                    <TextBlock Text="Planet: " FontSize="16" Foreground="#9F9FFF"/>
-                                    <TextBlock Text="{Binding CurrentProfile.Planet.PlanetName}" FontSize="16" Foreground="#9F9FFF"/>
-                                </StackPanel>
+                                <!-- <StackPanel Orientation="Horizontal" Spacing="5" Margin="0,2,0,5"> -->
+                                <!--     <TextBlock Text="Planet: " FontSize="16" Foreground="#9F9FFF"/> -->
+                                <!--     <TextBlock Text="{Binding CurrentProfile.Planet.PlanetName}" FontSize="16" Foreground="#9F9FFF"/> -->
+                                <!-- </StackPanel> -->
 
                                 <!-- Physical Attributes with responsive layout -->
                                 <ItemsControl ItemsSource="{Binding PhysicalAttributes}" HorizontalAlignment="Stretch">

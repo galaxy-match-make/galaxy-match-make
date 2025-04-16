@@ -117,16 +117,16 @@ namespace GalaxyMatchGUI.ViewModels
                         AvatarUrl = profile.AvatarUrl ?? string.Empty;
                         
                         // Set selected interests
-                        if (profile.UserInterests != null && profile.UserInterests.Any() && AllInterests.Any())
-                        {
-                            SelectedInterests.Clear();
-                            foreach (var userInterest in profile.UserInterests)
-                            {
-                                var interest = AllInterests.FirstOrDefault(i => i.Id == userInterest.InterestId);
-                                if (interest != null)
-                                    SelectedInterests.Add(interest);
-                            }
-                        }
+                        // if (profile.UserInterests != null && profile.UserInterests.Any() && AllInterests.Any())
+                        // {
+                        //     SelectedInterests.Clear();
+                        //     foreach (var userInterest in profile.UserInterests)
+                        //     {
+                        //         var interest = AllInterests.FirstOrDefault(i => i.Id == userInterest.InterestId);
+                        //         if (interest != null)
+                        //             SelectedInterests.Add(interest);
+                        //     }
+                        // }
                     }
                 }
             }

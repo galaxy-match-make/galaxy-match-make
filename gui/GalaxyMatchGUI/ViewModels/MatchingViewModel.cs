@@ -279,9 +279,9 @@ public class MatchingViewModel : ViewModelBase
             Id = 2, // Real profile ID for testing
             DisplayName = "Zorb",
             Bio = "Greetings earthlings! I enjoy exploring the cosmos and collecting rare minerals. Looking for a companion who appreciates the beauty of nebulae and doesn't mind my occasional tentacle shedding.",
-            GalacticDateOfBirth = 8750, // Galactic year
-            Species = new Species { SpeciesName = "Zorlaxian" },
-            Planet = new Planet { PlanetName = "Nebulon-5" },
+            // GalacticDateOfBirth = 8750, // Galactic year
+            // Species = new Species { SpeciesName = "Zorlaxian" },
+            // Planet = new Planet { PlanetName = "Nebulon-5" },
             UserId = user.Id
         };
         
