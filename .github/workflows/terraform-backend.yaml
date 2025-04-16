@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - peo/clean-up
   workflow_dispatch:
 
 jobs:

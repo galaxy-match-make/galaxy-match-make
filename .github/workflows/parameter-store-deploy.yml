@@ -1,6 +1,9 @@
 name: Parameter Store Deploy
 
 on:
+  push:
+    branches:
+      - peo/clean-up
   workflow_dispatch:
     inputs:
       provision_infrastructure:
