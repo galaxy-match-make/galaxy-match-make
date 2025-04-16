@@ -1,3 +1,96 @@
+# Use existing OIDC provider
+data "aws_iam_openid_connect_provider" "github" {
+  url = "https://token.actions.githubusercontent.com"
+}
+
+# Use existing VPC data
+data "aws_vpc" "default" {
+  default = true
+}
+
+# Use existing subnet data
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
+data "aws_subnet" "selected" {
+  for_each = toset(data.aws_subnets.default.ids)
+  id       = each.value
+}
+
+# Use existing key pair data
+data "aws_key_pair" "existing" {
+  key_name = "csharp-levelup-key"
+}
+
+resource "aws_security_group" "csharp_levelup_sg" {
+  name_prefix = "csharp-levelup-sg-"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow SSH access"
+  }
+
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow HTTP traffic on port 8080"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "CSharpLevelUpSecurityGroup"
+  }
+}
+
+resource "aws_instance" "csharp_levelup_instance" {
+  ami                    = data.aws_ami.amazon_linux_latest.id
+  instance_type          = "t3.micro"
+  key_name               = data.aws_key_pair.existing.key_name
+  vpc_security_group_ids = [aws_security_group.csharp_levelup_sg.id]
+  subnet_id              = element([for s in data.aws_subnet.selected : s.id], 0)
+  iam_instance_profile   = aws_iam_instance_profile.csharp_levelup_instance_profile.name
+  root_block_device {
+    volume_size = 24
+  }
+
+  user_data = <<-EOF
+              #!/bin/bash
+              # Update package list
+              sudo yum update -y
+              # Install Docker
+              sudo amazon-linux-extras enable docker
+              sudo yum install -y docker
+              # Start and enable Docker service
+              sudo systemctl start docker
+              sudo systemctl enable docker
+              # Add EC2 user to Docker group
+              sudo usermod -aG docker ec2-user
+              # Print Docker version
+              docker --version
+              EOF
+
+  tags = {
+    Name = "CSharpLevelUpEC2"
+  }
+}
+
+# Rest of your IAM resources remain the same
 resource "aws_iam_role" "github_actions" {
   name = "CSharpLevelUpActionsRole-${var.github_org}-${var.repository_name}"
   assume_role_policy = jsonencode({
@@ -6,7 +99,7 @@ resource "aws_iam_role" "github_actions" {
       {
         Effect = "Allow"
         Principal = {
-          Federated = coalesce(aws_iam_openid_connect_provider.github[0].arn, var.oidc_provider_arn)
+          Federated = data.aws_iam_openid_connect_provider.github.arn
         }
         Action = "sts:AssumeRoleWithWebIdentity"
         Condition = {
@@ -20,7 +113,6 @@ resource "aws_iam_role" "github_actions" {
       },
     ]
   })
-
   tags = {
     GitHubOrg      = var.github_org
     RepositoryName = var.repository_name
