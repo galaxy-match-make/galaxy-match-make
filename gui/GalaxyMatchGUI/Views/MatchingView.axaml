@@ -38,7 +38,7 @@
 			<Setter Property="RenderTransform" Value="scale(1.1)"/>
 		</Style>
         
-        <!-- Enhanced responsive profile card styles with width breakpoints -->
+        <!-- Profile card styles with width breakpoints -->
         <Style Selector="Border.profileCard">
             <Setter Property="Width" Value="NaN"/>
             <Setter Property="MaxWidth" Value="450"/>
@@ -125,7 +125,7 @@
             <Ellipse Classes="pulsingStar" Canvas.Left="200" Canvas.Top="650" Width="2" Height="2" Fill="#FFFFFF"/>
             <Ellipse Classes="pulsingStar" Canvas.Left="100" Canvas.Top="700" Width="4" Height="4" Fill="#FFFFFF"/>
         
-            <!-- Small planet in background with rotation animation -->
+            <!-- Small planet in background -->
             <Ellipse Canvas.Left="30" Canvas.Top="50" Width="40" Height="40" Opacity="0.6">
                 <Ellipse.RenderTransform>
                     <RotateTransform CenterX="20" CenterY="20"/>
@@ -219,63 +219,250 @@
             </Button>
         </Grid>
 
-        <!-- Swipeable Card - Centered with responsive sizing -->
+        <!-- Swipeable Card -->
         <Grid Grid.Row="1">
+            <!-- Loading animation -->
             <Border IsVisible="{Binding IsLoading}" 
-                   Width="50" Height="50"
+                   Width="200" Height="200"
                    Background="Transparent"
                    HorizontalAlignment="Center" 
-                   VerticalAlignment="Center">
-                <Ellipse Width="40" Height="40" 
-                         Stroke="#9D4EDD" 
-                         StrokeThickness="4"
-                         IsVisible="{Binding IsLoading}">
-                    <Ellipse.Styles>
-                        <Style Selector="Ellipse">
-                            <Style.Animations>
-                                <Animation Duration="0:0:1.5" IterationCount="Infinite">
-                                    <KeyFrame Cue="0%">
-                                        <Setter Property="RotateTransform.Angle" Value="0"/>
-                                    </KeyFrame>
-                                    <KeyFrame Cue="100%">
-                                        <Setter Property="RotateTransform.Angle" Value="360"/>
-                                    </KeyFrame>
-                                </Animation>
-                            </Style.Animations>
-                        </Style>
-                    </Ellipse.Styles>
-                </Ellipse>
+                   VerticalAlignment="Center"
+                   ZIndex="10">
+                <Grid>
+                    <!-- UFO body -->
+                    <Ellipse Width="120" Height="50" 
+                             Fill="#3A1F7B"
+                             Stroke="#9D4EDD" 
+                             StrokeThickness="3"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center">
+                        <Ellipse.Effect>
+                            <DropShadowEffect Color="#00FF9F" BlurRadius="20" Opacity="0.7"/>
+                        </Ellipse.Effect>
+                        <Ellipse.Styles>
+                            <Style Selector="Ellipse">
+                                <Style.Animations>
+                                    <Animation Duration="0:0:2" IterationCount="Infinite">
+                                        <KeyFrame Cue="0%">
+                                            <Setter Property="Width" Value="120"/>
+                                        </KeyFrame>
+                                        <KeyFrame Cue="50%">
+                                            <Setter Property="Width" Value="130"/>
+                                        </KeyFrame>
+                                        <KeyFrame Cue="100%">
+                                            <Setter Property="Width" Value="120"/>
+                                        </KeyFrame>
+                                    </Animation>
+                                </Style.Animations>
+                            </Style>
+                        </Ellipse.Styles>
+                    </Ellipse>
+                    
+                    <!-- UFO dome -->
+                    <Ellipse Width="60" Height="40" 
+                             Fill="#5D12D2"
+                             Stroke="#9D4EDD" 
+                             StrokeThickness="2"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             Margin="0,0,0,30">
+                        <Ellipse.Effect>
+                            <DropShadowEffect Color="#00FF9F" BlurRadius="15" Opacity="0.6"/>
+                        </Ellipse.Effect>
+                    </Ellipse>
+                    
+                    <!-- UFO light beam -->
+                    <Path Data="M 0,0 L 20,80 L -20,80 Z" 
+                          Fill="#00FF9F" 
+                          Opacity="0.4"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center" 
+                          Margin="0,40,0,0">
+                        <Path.Effect>
+                            <BlurEffect Radius="10"/>
+                        </Path.Effect>
+                        <Path.Styles>
+                            <Style Selector="Path">
+                                <Style.Animations>
+                                    <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                                        <KeyFrame Cue="0%">
+                                            <Setter Property="Opacity" Value="0.4"/>
+                                        </KeyFrame>
+                                        <KeyFrame Cue="50%">
+                                            <Setter Property="Opacity" Value="0.7"/>
+                                        </KeyFrame>
+                                        <KeyFrame Cue="100%">
+                                            <Setter Property="Opacity" Value="0.4"/>
+                                        </KeyFrame>
+                                    </Animation>
+                                </Style.Animations>
+                            </Style>
+                        </Path.Styles>
+                    </Path>
+                    
+                    <!-- Stars around the UFO  -->
+                    <Canvas Width="200" Height="200">
+                        <!-- Eight rotating stars around the UFO -->
+                        <Path Canvas.Left="85" Canvas.Top="30" 
+                              Data="M 0,0 L 2,8 L 0,6 L -2,8 L 0,0" 
+                              Fill="#FFFFFF">
+                            <Path.RenderTransform>
+                                <RotateTransform CenterX="0" CenterY="0"/>
+                            </Path.RenderTransform>
+                            <Path.Styles>
+                                <Style Selector="Path">
+                                    <Style.Animations>
+                                        <Animation Duration="0:0:3" IterationCount="Infinite">
+                                            <KeyFrame Cue="0%">
+                                                <Setter Property="(RotateTransform.Angle)" Value="0"/>
+                                            </KeyFrame>
+                                            <KeyFrame Cue="100%">
+                                                <Setter Property="(RotateTransform.Angle)" Value="360"/>
+                                            </KeyFrame>
+                                        </Animation>
+                                    </Style.Animations>
+                                </Style>
+                            </Path.Styles>
+                        </Path>
+                        
+                        <Path Canvas.Left="120" Canvas.Top="50" 
+                              Data="M 0,0 L 2,8 L 0,6 L -2,8 L 0,0" 
+                              Fill="#00FF9F">
+                            <Path.RenderTransform>
+                                <RotateTransform CenterX="0" CenterY="0"/>
+                            </Path.RenderTransform>
+                            <Path.Styles>
+                                <Style Selector="Path">
+                                    <Style.Animations>
+                                        <Animation Duration="0:0:2" IterationCount="Infinite">
+                                            <KeyFrame Cue="0%">
+                                                <Setter Property="(RotateTransform.Angle)" Value="0"/>
+                                            </KeyFrame>
+                                            <KeyFrame Cue="100%">
+                                                <Setter Property="(RotateTransform.Angle)" Value="360"/>
+                                            </KeyFrame>
+                                        </Animation>
+                                    </Style.Animations>
+                                </Style>
+                            </Path.Styles>
+                        </Path>
+                        
+                        <Path Canvas.Left="135" Canvas.Top="90" 
+                              Data="M 0,0 L 2,8 L 0,6 L -2,8 L 0,0" 
+                              Fill="#FFFFFF">
+                            <Path.RenderTransform>
+                                <RotateTransform CenterX="0" CenterY="0"/>
+                            </Path.RenderTransform>
+                            <Path.Styles>
+                                <Style Selector="Path">
+                                    <Style.Animations>
+                                        <Animation Duration="0:0:4" IterationCount="Infinite">
+                                            <KeyFrame Cue="0%">
+                                                <Setter Property="(RotateTransform.Angle)" Value="0"/>
+                                            </KeyFrame>
+                                            <KeyFrame Cue="100%">
+                                                <Setter Property="(RotateTransform.Angle)" Value="360"/>
+                                            </KeyFrame>
+                                        </Animation>
+                                    </Style.Animations>
+                                </Style>
+                            </Path.Styles>
+                        </Path>
+                        
+                        <Path Canvas.Left="50" Canvas.Top="60" 
+                              Data="M 0,0 L 2,8 L 0,6 L -2,8 L 0,0" 
+                              Fill="#9D4EDD">
+                            <Path.RenderTransform>
+                                <RotateTransform CenterX="0" CenterY="0"/>
+                            </Path.RenderTransform>
+                            <Path.Styles>
+                                <Style Selector="Path">
+                                    <Style.Animations>
+                                        <Animation Duration="0:0:3.5" IterationCount="Infinite">
+                                            <KeyFrame Cue="0%">
+                                                <Setter Property="(RotateTransform.Angle)" Value="0"/>
+                                            </KeyFrame>
+                                            <KeyFrame Cue="100%">
+                                                <Setter Property="(RotateTransform.Angle)" Value="360"/>
+                                            </KeyFrame>
+                                        </Animation>
+                                    </Style.Animations>
+                                </Style>
+                            </Path.Styles>
+                        </Path>
+                    </Canvas>
+                    
+                    <!-- Loading text -->
+                    <TextBlock Text="{Binding StatusMessage}" 
+                              FontSize="16" 
+                              Foreground="#FFFFFF"
+                              HorizontalAlignment="Center" 
+                              VerticalAlignment="Center"
+                              TextAlignment="Center"
+                              Margin="0,80,0,0">
+                        <TextBlock.Effect>
+                            <DropShadowEffect Color="#9D4EDD" BlurRadius="10"/>
+                        </TextBlock.Effect>
+                        <TextBlock.Styles>
+                            <Style Selector="TextBlock">
+                                <Style.Animations>
+                                    <Animation Duration="0:0:2" IterationCount="Infinite">
+                                        <KeyFrame Cue="0%">
+                                            <Setter Property="Opacity" Value="0.7"/>
+                                        </KeyFrame>
+                                        <KeyFrame Cue="50%">
+                                            <Setter Property="Opacity" Value="1"/>
+                                        </KeyFrame>
+                                        <KeyFrame Cue="100%">
+                                            <Setter Property="Opacity" Value="0.7"/>
+                                        </KeyFrame>
+                                    </Animation>
+                                </Style.Animations>
+                            </Style>
+                        </TextBlock.Styles>
+                    </TextBlock>
+                    
+                    <!-- Scanning rings animation -->
+                    <Ellipse Width="30" Height="10" 
+                             Stroke="#00FF9F" 
+                             StrokeThickness="2"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             Margin="0,20,0,0"
+                             Opacity="0.6">
+                        <Ellipse.Styles>
+                            <Style Selector="Ellipse">
+                                <Style.Animations>
+                                    <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                                        <KeyFrame Cue="0%">
+                                            <Setter Property="Width" Value="10"/>
+                                            <Setter Property="Height" Value="3"/>
+                                            <Setter Property="Opacity" Value="0.8"/>
+                                        </KeyFrame>
+                                        <KeyFrame Cue="100%">
+                                            <Setter Property="Width" Value="80"/>
+                                            <Setter Property="Height" Value="20"/>
+                                            <Setter Property="Opacity" Value="0"/>
+                                        </KeyFrame>
+                                    </Animation>
+                                </Style.Animations>
+                            </Style>
+                        </Ellipse.Styles>
+                    </Ellipse>
+                </Grid>
             </Border>
                          
+            <!-- Profile Card -->
             <Border HorizontalAlignment="Center" VerticalAlignment="Center"
                     MaxWidth="800" MinWidth="300"
                     Width="{Binding $parent[Grid].Bounds.Width}"
                     Margin="20"
                     CornerRadius="15" Classes="profileCard" Background="#1E0B45" ClipToBounds="True"
-                    RenderTransform="{Binding}">
-                <Border.RenderTransform>
-                    <TransformGroup>
-                        <RotateTransform Angle="{Binding CardRotation}"/>
-                        <TranslateTransform X="{Binding CardTranslateX}"/>
-                        <ScaleTransform ScaleX="{Binding CardScale}" ScaleY="{Binding CardScale}"/>
-                    </TransformGroup>
-                </Border.RenderTransform>
-                <Border.Transitions>
-                    <Transitions>
-                        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3"/>
-                        <DoubleTransition Property="Opacity" Duration="0:0:0.3"/>
-                    </Transitions>
-                </Border.Transitions>
-                <Border.Opacity>
-                    <Binding Path="CardOpacity"/>
-                </Border.Opacity>
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="20" Color="#5D12D2" Opacity="0.7"/>
-                </Border.Effect>
-
-                <!-- Inside your profile card Border, replace the current Grid with this: -->
-<Grid ColumnDefinitions="Auto,*">  <!-- Two columns: image on left, content on right -->
-    <!-- Profile Image with gradient overlay - now in first column -->
+                    RenderTransform="{Binding}"
+                    ZIndex="1"
+                    IsVisible="{Binding !IsLoading}">
+                <Grid ColumnDefinitions="Auto,*">  
+    <!-- Profile Image with gradient overlay -->
     <Border Grid.Column="0" 
         Width="250"
         Height="400"
@@ -314,7 +501,7 @@
         </Grid>
     </Border>
 
-    <!-- Profile Information - now in second column -->
+    <!-- Profile Information  -->
     <Border Grid.Column="1" Padding="20" Background="#1E0B45">
         <ScrollViewer VerticalScrollBarVisibility="Auto" 
                      HorizontalScrollBarVisibility="Disabled">
@@ -344,7 +531,7 @@
                                     <TextBlock Text="{Binding CurrentProfile.Planet.PlanetName}" FontSize="16" Foreground="#9F9FFF"/>
                                 </StackPanel>
 
-                                <!-- Physical Attributes with responsive layout -->
+                                <!-- Physical Attributes -->
                                 <ItemsControl ItemsSource="{Binding PhysicalAttributes}" HorizontalAlignment="Stretch">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -375,7 +562,7 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
 
-                                <!-- Bio with animated highlighting and responsive layout -->
+                                <!-- Bio -->
                                 <Border Background="#1A0D35" CornerRadius="10" Padding="12,8" Margin="0,0,0,5">
                                     <Border.Styles>
                                         <Style Selector="Border">
@@ -402,7 +589,7 @@
                                         TextWrapping="Wrap"/>
                                 </Border>
 
-                                <!-- Interests with improved responsive layout -->
+                                <!-- Interests -->
                                 <StackPanel>
                                     <TextBlock Text="Interests:" Foreground="#00FF9F" 
                                             FontSize="16" FontWeight="SemiBold" 
@@ -445,7 +632,8 @@
         <StackPanel Grid.Row="2" Orientation="Horizontal" 
                     HorizontalAlignment="Center" 
                     VerticalAlignment="Bottom" 
-                    Margin="0,5,0,20" Spacing="30">
+                    Margin="0,5,0,20" Spacing="30"
+                    IsVisible="{Binding !IsLoading}">
             <Button Classes="actionButton" Background="#FF4757" Command="{Binding SwipeLeftCommand}">
                 <Grid>
                     <TextBlock Text="✗" FontSize="28" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>

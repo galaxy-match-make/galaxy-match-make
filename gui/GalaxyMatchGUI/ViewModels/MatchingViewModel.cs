@@ -30,7 +30,6 @@ public partial class MatchingViewModel : ViewModelBase
         set => SetProperty(ref _avatarImage, value);
     }
     
-    // Animation properties for swipe effects
     private double _cardTranslateX;
     public double CardTranslateX
     {
@@ -106,26 +105,29 @@ public partial class MatchingViewModel : ViewModelBase
         ViewProfileCommand = new RelayCommand(ViewProfile);
         ViewMessagesCommand = new RelayCommand(ViewMessages);
 
-        // Load profiles from API with JWT token
+        IsLoading = true;
+        StatusMessage = string.Empty;;
+        
         _ = LoadAllProfiles();
     }
 
     private async Task LoadAllProfiles()
     {
         IsLoading = true;
-        StatusMessage = "Finding matches in your galaxy...";
+        
+        await Task.Delay(2200);
         
         try
         {
-            // Check if JWT token is available
             var jwtToken = JwtStorage.Instance.authDetails?.JwtToken;
             if (string.IsNullOrEmpty(jwtToken))
             {
                 StatusMessage = "You must be logged in to find matches";
+                NavigationService?.NavigateTo<LoginViewModel>();
                 return;
             }
             
-            // Get all profiles from the API
+            // Get all profiles 
             _allProfiles = await _profileService.GetAllProfilesAsync();
             
             
@@ -141,16 +143,13 @@ public partial class MatchingViewModel : ViewModelBase
             }
             else
             {
-                // No profiles found, show fallback
-                StatusMessage = "No profiles found in your galaxy";
-                await LoadProfileWithBase64Image();
+                // TODO: No profiles found, show no profiles message
+                
             }
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error loading profiles: {ex.Message}";
-            // Fall back to demo profile
-            await LoadProfileWithBase64Image();
+            StatusMessage = "Error loading profiles, please try again";
         }
         finally
         {
@@ -160,16 +159,21 @@ public partial class MatchingViewModel : ViewModelBase
     
     private async Task ShowNextProfile()
     {
+        // Set to loading state
+        IsLoading = true;
+        StatusMessage = string.Empty;
+        
         if (_allProfiles == null || !_allProfiles.Any())
         {
-            StatusMessage = "No more profiles to show";
+            // TODO : Fall back to no profiles message
+            IsLoading = false;
             return;
         }
         
         // Check if we've shown all profiles
         if (_currentProfileIndex >= _allProfiles.Count)
         {
-            StatusMessage = "You've seen all profiles in your galaxy";
+            // TODO: Show no more profiles message
             _currentProfileIndex = 0;
         }
         
@@ -177,15 +181,11 @@ public partial class MatchingViewModel : ViewModelBase
         var profile = _allProfiles[_currentProfileIndex++];
         CurrentProfile = profile;
         
-        Console.WriteLine($"Showing profile: {profile.DisplayName}");
-        
-        // Try to load profile image
+        // Load profile 
         await LoadProfileImage(profile.AvatarUrl);
-        
-        // Load profile specific data
         LoadProfileAttributes(profile);
         
-        StatusMessage = string.Empty;
+        IsLoading = false;
     }
     
     private void LoadProfileAttributes(Profile profile)
@@ -193,7 +193,6 @@ public partial class MatchingViewModel : ViewModelBase
         // Clear physical attributes
         PhysicalAttributes.Clear();
         
-        // Add species as first attribute
         if (profile.Species != null)
         {
             PhysicalAttributes.Add(new PhysicalAttribute { Icon = "👽", Description = profile.Species.SpeciesName });
@@ -219,7 +218,6 @@ public partial class MatchingViewModel : ViewModelBase
             PhysicalAttributes.Add(new PhysicalAttribute { Icon = genderIcon, Description = profile.Gender.GenderName });
         }
         
-        // Add height if available
         if (profile.HeightInGalacticInches.HasValue)
         {
             PhysicalAttributes.Add(new PhysicalAttribute 
@@ -229,7 +227,6 @@ public partial class MatchingViewModel : ViewModelBase
             });
         }
         
-        // Clear and populate interests from user interests
         Interests.Clear();
         if (profile.UserInterests != null && profile.UserInterests.Any())
         {
@@ -294,34 +291,29 @@ public partial class MatchingViewModel : ViewModelBase
         
         await Task.Delay(300);
         
-        // Reset values
         CardTranslateX = 0;
         CardRotation = 0;
         CardOpacity = 0;
         
-        // If we have profiles from API, show next profile
         if (_allProfiles.Any())
         {
             await ShowNextProfile();
         }
         else
         {
-            // Fall back to demo profile
+            // TODO: Shpow no more profiles message
             await LoadNextProfile();
         }
         
-        // Fade in with slight scale effect
         CardScale = 0.95;
         await Task.Delay(50);
         
-        // Restore to normal
         CardOpacity = 1;
         CardScale = 1;
     }
 
     private void ViewProfile()
     {
-        // Check if there's a profile to view
         if (CurrentProfile == null) return;
         
         // Create a new ProfileViewModel instance
@@ -339,23 +331,19 @@ public partial class MatchingViewModel : ViewModelBase
             SelectedGender = CurrentProfile.Gender
         };
         
-        // Navigate to the profile view
         NavigationService?.NavigateTo(profileViewModel);
     }
 
     private void ViewMessages()
     {
-        // Navigate to messages view
         NavigationService?.NavigateTo<InteractionsViewModel>();
     }
     
-    // Fallback methods for demo profile if API fails
+    // Fallback for demo profile if API fails
     private async Task LoadNextProfile()
     {
         IsLoading = true;
-        StatusMessage = "Finding your next match...";
         
-        // In a real app, this would fetch the next profile from a service
         await LoadProfileWithBase64Image();
         
         IsLoading = false;
@@ -367,17 +355,11 @@ public partial class MatchingViewModel : ViewModelBase
         // Create a profile with base64 image 
         var profile = CreateBasicProfile();
         
-        // Use a base64 encoded image for testing
-        // This is a simple purple gradient image
-        string sampleBase64Image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAABHNCSVQICAgIfAhkiAAAAUdJREFUeJzt1DEBwCAAwDB0voIzhD0EBDkTBTUNmTfHP1nXdR5+besDPM0AMQPEDBBb5w1vt5+orV4HiAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIPYBmuwEO61WpfIAAAAASUVORK5CYII=";
+        string sampleBase64Image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAABHNCSVQICAgIfAhkiAAAAUdJREFUeJzt1DEBwCAAwDB0voIzhD0EBDkTBTUNmTfHP1nXdR5+besDPM0AMQPEDBBb5w1vt5+orV4HiAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIPYBmuwEO61WpfIAAAAASUVORK5CYII=";
         
-        // Load the base64 image
         await LoadBase64Image(sampleBase64Image);
         
-        // Set current profile
         CurrentProfile = profile;
-        
-        // Load other profile data
         LoadProfileData();
     }
     
@@ -407,7 +389,6 @@ public partial class MatchingViewModel : ViewModelBase
         
         try
         {
-            // Check if it's a base64 image
             if (avatarUrl.StartsWith("data:image") && avatarUrl.Contains("base64,"))
             {
                 await LoadBase64Image(avatarUrl);
@@ -420,12 +401,10 @@ public partial class MatchingViewModel : ViewModelBase
                                
             if (hasValidUrl)
             {
-                // Load from remote URL
                 AvatarImage = await AsyncImageLoader.LoadAsync(avatarUrl);
             }
             else
             {
-                // Load from local asset
                 var uri = new Uri(avatarUrl);
                 using var stream = AssetLoader.Open(uri);
                 AvatarImage = new Bitmap(stream);
@@ -433,11 +412,10 @@ public partial class MatchingViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading profile image: {ex.Message}");
+            StatusMessage = $"Error loading image";
             
             try
             {
-                // If URL loading fails, try fall back to local asset
                 var uri = new Uri("avares://GalaxyMatchGUI/Assets/alien_profile.png");
                 using var stream = AssetLoader.Open(uri);
                 AvatarImage = new Bitmap(stream);
@@ -449,12 +427,10 @@ public partial class MatchingViewModel : ViewModelBase
         }
     }
     
-    // Dedicated method for handling base64 encoded images
     private async Task LoadBase64Image(string base64String)
     {
         if (string.IsNullOrEmpty(base64String))
         {
-            // Fall back to default image if base64 is empty
             await LoadProfileImage("avares://GalaxyMatchGUI/Assets/alien_profile.png");
             return;
         }
@@ -463,17 +439,14 @@ public partial class MatchingViewModel : ViewModelBase
         {
             IsBase64Image = true;
             
-            // Remove the data URL prefix if present (e.g., "data:image/jpeg;base64,")
             string sanitizedBase64 = base64String;
             if (base64String.Contains(","))
             {
                 sanitizedBase64 = base64String.Substring(base64String.IndexOf(',') + 1);
             }
-            
-            // Convert base64 to byte array
+        
             byte[] imageBytes = Convert.FromBase64String(sanitizedBase64);
             
-            // Create a bitmap from the byte array
             using (var memoryStream = new MemoryStream(imageBytes))
             {
                 AvatarImage = new Bitmap(memoryStream);
@@ -481,17 +454,14 @@ public partial class MatchingViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading base64 image: {ex.Message}");
             IsBase64Image = false;
             
-            // Fall back to default image
             await LoadProfileImage("avares://GalaxyMatchGUI/Assets/alien_profile.png");
         }
     }
 
     private void LoadProfileData()
     {
-        // Clear and populate physical attributes
         PhysicalAttributes.Clear();
         PhysicalAttributes.Add(new PhysicalAttribute { Icon = "👽", Description = "3 Eyes" });
         PhysicalAttributes.Add(new PhysicalAttribute { Icon = "🦑", Description = "7 Tentacles" });
@@ -507,7 +477,6 @@ public partial class MatchingViewModel : ViewModelBase
         Interests.Add(new InterestItem { Name = "Telepathic Music" });
     }
 
-    // Helper classes for UI display
     public class PhysicalAttribute
     {
         public string Icon { get; set; } = string.Empty;
