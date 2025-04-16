@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add secure configuration service
+builder.Services.AddSecureConfiguration(builder.Configuration);
+
 // Add services to the container.
 builder.Services.AddControllers();
 
@@ -49,6 +52,8 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
+
+// Configure DapperContext to use secure connection string
 builder.Services.AddSingleton<DapperContext>();
 
 builder.Services.AddScoped<IPlanetRepository, PlanetRepository>();
@@ -68,8 +73,10 @@ builder.Services.AddScoped<IGenericRepository<ProfileDto>, GenericRepository<Pro
 builder.Services.AddScoped<IGenericService<ProfileDto>, GenericService<ProfileDto>>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 
-builder.Services.AddScoped<GoogleAuthService>();
+// Register existing GoogleAuthService
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<GoogleAuthService>();
+
 builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 builder.Services.AddScoped<IInteractionRepository, InteractionRepository>();
 

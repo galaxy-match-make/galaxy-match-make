@@ -1,0 +1,348 @@
+name: Parameter Store Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      provision_infrastructure:
+        description: 'Provision/update infrastructure'
+        type: boolean
+        default: false
+      environment:
+        description: 'Deployment environment'
+        type: choice
+        options:
+          - development
+          - production
+        default: 'development'
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: af-south-1
+  CONTAINER_NAME: galaxy-match-api
+  PARAMETER_PREFIX: "/galaxy-match"
+
+jobs:
+  provision_infrastructure:
+    name: Provision Infrastructure
+    if: ${{ github.event.inputs.provision_infrastructure == 'true' }}
+    runs-on: ubuntu-latest
+    outputs:
+      instance_ip: ${{ steps.terraform_output.outputs.instance_public_ip }}
+      role_arn: ${{ steps.terraform_output.outputs.role_arn }}
+      ecr_repo_url: ${{ steps.terraform_output.outputs.ecr_repository_url }}
+      ecr_repo_name: ${{ steps.extract_repo_name.outputs.repo_name }}
+    
+    defaults:
+      run:
+        working-directory: api/terraform
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ">= 1.0.0"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color
+
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -auto-approve -no-color
+
+      - name: Output Terraform Variables
+        id: terraform_output
+        run: |
+          echo "instance_public_ip=$(terraform output -json instance_public_ip | jq -r '.')" >> $GITHUB_OUTPUT
+          echo "role_arn=$(terraform output -json role_arn | jq -r '.')" >> $GITHUB_OUTPUT
+          echo "ecr_repository_url=$(terraform output -json ecr_repository_url | jq -r '.')" >> $GITHUB_OUTPUT
+
+      - name: Extract Repository Name
+        id: extract_repo_name
+        run: |
+          REPO_URL=$(terraform output -json ecr_repository_url | jq -r '.')
+          REPO_NAME=$(echo "$REPO_URL" | sed 's#^[^/]\+/[^/]\+\/\([^/]\+\)$#\1#')
+          echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
+
+      - name: Update GitHub Variables
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh variable set AWS_GITHUB_ACTIONS_ROLE_ARN --body "${{ steps.terraform_output.outputs.role_arn }}"
+          gh variable set ECR_REPOSITORY_NAME --body "${{ steps.extract_repo_name.outputs.repo_name }}"
+          gh variable set EC2_INSTANCE_PUBLIC_IP --body "${{ steps.terraform_output.outputs.instance_public_ip }}"
+          gh secret set HOST --body "${{ steps.terraform_output.outputs.instance_public_ip }}"
+
+      # 12-factor: Store application secrets in AWS Parameter Store
+      - name: Store Application Secrets in Parameter Store
+        run: |
+          # Store database connection string
+          aws ssm put-parameter \
+            --name "${{ env.PARAMETER_PREFIX }}/${{ github.event.inputs.environment }}/ConnectionStrings/DefaultConnection" \
+            --description "Database connection string" \
+            --type "SecureString" \
+            --value "${{ secrets.DB_CONNECTION_STRING }}" \
+            --overwrite
+
+          # Store Google OAuth credentials
+          aws ssm put-parameter \
+            --name "${{ env.PARAMETER_PREFIX }}/${{ github.event.inputs.environment }}/Google/ClientId" \
+            --description "Google OAuth client ID" \
+            --type "SecureString" \
+            --value "${{ secrets.GOOGLE_CLIENT_ID }}" \
+            --overwrite
+
+          aws ssm put-parameter \
+            --name "${{ env.PARAMETER_PREFIX }}/${{ github.event.inputs.environment }}/Google/ClientSecret" \
+            --description "Google OAuth client secret" \
+            --type "SecureString" \
+            --value "${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+            --overwrite
+
+          aws ssm put-parameter \
+            --name "${{ env.PARAMETER_PREFIX }}/${{ github.event.inputs.environment }}/Google/RedirectUri" \
+            --description "Google OAuth redirect URI" \
+            --type "SecureString" \
+            --value "${{ secrets.GOOGLE_REDIRECT_URI }}" \
+            --overwrite
+
+          echo "Stored application secrets in Parameter Store"
+
+  build_and_deploy:
+    name: Build and Deploy API
+    needs: [provision_infrastructure]
+    if: always() && (needs.provision_infrastructure.result == 'success' || needs.provision_infrastructure.result == 'skipped')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.103'
+
+      # Add the AWSSDK.SimpleSystemsManagement package needed for Parameter Store
+      - name: Add AWS SSM package
+        working-directory: api
+        run: |
+          dotnet add package AWSSDK.SimpleSystemsManagement
+
+      # Prepare clean appsettings.json for deployment - removing secrets
+      - name: Prepare clean appsettings for deployment
+        working-directory: api
+        run: |
+          cat <<EOF > appsettings.json
+          {
+            "Logging": {
+              "LogLevel": {
+                "Default": "Information",
+                "Microsoft.AspNetCore": "Warning"
+              }
+            },
+            "AllowedHosts": "*"
+          }
+          EOF
+
+      - name: Build project
+        working-directory: api
+        run: |
+          dotnet build -c Release
+          echo "Build successful"
+
+      # Configure AWS credentials based on whether we're using newly created infrastructure
+      - name: Configure AWS credentials (new infrastructure)
+        if: ${{ github.event.inputs.provision_infrastructure == 'true' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Configure AWS credentials (existing infrastructure)
+        if: ${{ github.event.inputs.provision_infrastructure == 'false' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR repo
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set ECR repository
+        id: set-repo
+        run: |
+          if [ "${{ github.event.inputs.provision_infrastructure }}" == "true" ]; then
+            echo "REPOSITORY=${{ needs.provision_infrastructure.outputs.ecr_repo_name }}" >> $GITHUB_ENV
+          else
+            echo "REPOSITORY=${{ vars.ECR_REPOSITORY_NAME }}" >> $GITHUB_ENV
+          fi
+
+      - name: Build, tag and push image to ECR
+        working-directory: api
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Create a 12-factor compliant Dockerfile
+          cat > Dockerfile.parameterstore << 'EOF'
+          FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+          WORKDIR /app
+          EXPOSE 8080
+
+          FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+          WORKDIR /src
+          COPY ["galaxy-match-make.csproj", "./"]
+          RUN dotnet restore "galaxy-match-make.csproj"
+          COPY . .
+          RUN dotnet build "galaxy-match-make.csproj" -c Release -o /app/build
+
+          FROM build AS publish
+          RUN dotnet publish "galaxy-match-make.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+          FROM base AS final
+          WORKDIR /app
+          COPY --from=publish /app/publish .
+          
+          # Install AWS CLI for Parameter Store access
+          RUN apt-get update && apt-get install -y \
+              curl \
+              unzip \
+              jq \
+              && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
+              && unzip awscliv2.zip \
+              && ./aws/install \
+              && rm -rf awscliv2.zip aws \
+              && apt-get clean \
+              && rm -rf /var/lib/apt/lists/*
+
+          # Add entrypoint script that sets up environment from Parameter Store
+          COPY entrypoint.sh /app/
+          RUN chmod +x /app/entrypoint.sh
+          
+          ENTRYPOINT ["/app/entrypoint.sh"]
+          EOF
+
+          # Create entrypoint script for Parameter Store integration
+          cat > entrypoint.sh << 'EOF'
+          #!/bin/bash
+          set -e
+
+          # Get environment (passed as ENV variable to docker)
+          ENV=${ASPNETCORE_ENVIRONMENT:-"development"}
+          ENV=$(echo "$ENV" | tr '[:upper:]' '[:lower:]')
+          PARAM_PREFIX="/galaxy-match/${ENV}"
+          
+          echo "Setting up environment variables from AWS Parameter Store for: $ENV"
+          
+          # Function to recursively get parameters and set as environment variables
+          function get_parameters() {
+              local path=$1
+              local params
+              
+              # Get parameters for the specified path
+              params=$(aws ssm get-parameters-by-path \
+                  --path "$path" \
+                  --recursive \
+                  --with-decryption \
+                  --output json)
+              
+              # Exit if no parameters found or command failed
+              if [ $? -ne 0 ] || [ -z "$params" ]; then
+                  echo "No parameters found at path: $path or error retrieving parameters"
+                  return
+              fi
+              
+              # Process each parameter
+              echo "$params" | jq -c '.Parameters[]' | while read -r param; do
+                  local name=$(echo "$param" | jq -r '.Name')
+                  local value=$(echo "$param" | jq -r '.Value')
+                  
+                  # Convert parameter name to environment variable format
+                  # Remove the prefix and replace / with __
+                  local env_name=$(echo "$name" | sed "s#$PARAM_PREFIX/##" | sed 's#/#__#g')
+                  
+                  # Set environment variable
+                  export "$env_name"="$value"
+                  echo "Set environment variable: $env_name"
+              done
+          }
+          
+          # Enable AWS Parameter Store
+          export USE_PARAMETER_STORE=true
+          
+          # Get all parameters for the current environment
+          get_parameters "$PARAM_PREFIX" || echo "Warning: Failed to get parameters, proceeding with local configuration"
+          
+          echo "Starting application..."
+          exec dotnet galaxy-match-make.dll
+          EOF
+
+          # Build and push the Docker image
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f Dockerfile.parameterstore .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+      - name: Set EC2 Instance IP
+        id: set-ec2-ip
+        run: |
+          if [ "${{ github.event.inputs.provision_infrastructure }}" == "true" ]; then
+            echo "EC2_IP=${{ needs.provision_infrastructure.outputs.instance_ip }}" >> $GITHUB_ENV
+          else
+            echo "EC2_IP=${{ vars.EC2_INSTANCE_PUBLIC_IP }}" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ env.EC2_IP }}
+          port: 22
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          username: ${{ secrets.USERNAME }}
+          envs: REGISTRY, REPOSITORY, IMAGE_TAG, AWS_REGION, CONTAINER_NAME, ENVIRONMENT
+          script: |
+            # Configure Docker to access ECR
+            aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin $REGISTRY
+            
+            # Pull the latest image
+            sudo docker pull $REGISTRY/$REPOSITORY:$IMAGE_TAG
+            
+            # Stop and remove the existing container if it exists
+            if sudo docker ps -a --format '{{.Names}}' | grep -w "$CONTAINER_NAME" > /dev/null; then
+                echo "Stopping existing container..."
+                sudo docker stop "$CONTAINER_NAME"
+                sudo docker rm "$CONTAINER_NAME"
+            fi
+            
+            # Ensure EC2 instance has access to Parameter Store
+            # The EC2 instance needs the AmazonSSMReadOnlyAccess policy attached to its role
+            
+            # Run the new container with the environment variable
+            sudo docker run -d --name $CONTAINER_NAME \
+              -p 8080:8080 \
+              -e ASPNETCORE_ENVIRONMENT="${{ github.event.inputs.environment }}" \
+              -e AWS_REGION="$AWS_REGION" \
+              $REGISTRY/$REPOSITORY:$IMAGE_TAG
+            
+            echo "Deployment completed successfully!"
