@@ -64,6 +64,8 @@ jobs:
           REPOSITORY: csharp-levelup-repo
           IMAGE_TAG: ${{ github.sha }}
         run: |-
+          echo ${{ secrets.appsettingsconfig }} > appsettings.Development.json
+          chmod 600 appsettings.Development.json
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
