@@ -4,12 +4,7 @@ on:
   workflow_dispatch:
 
   push:
-    branches:
-      - main
-      - dev
-      - peo/workflow
-    paths:
-      - 'api/**'
+    # Run on all branches with no path restrictions
         
 defaults:
   run:
