@@ -77,7 +77,7 @@ try
 
         if (credentials != null)
         {
-            var connectionString = $"Host={credentials.Host};Database=galaxy-match-db;Port=5432;Username={credentials.Username};Password={credentials.Password};TrustServerCertificate=True;";
+            var connectionString = $"Host={credentials.Host};Database=galaxy-match-db;Port=5432;Username={credentials.Username};Password={credentials.Password};";
 
             // Configure your DbContext using the retrieved connection string
             builder.Services.AddScoped<AppDbContext>(provider => new AppDbContext(connectionString));
