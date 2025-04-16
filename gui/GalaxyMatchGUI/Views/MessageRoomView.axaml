@@ -32,23 +32,17 @@
                 Foreground="White" 
                 FontWeight="Bold" 
                 Margin="10,0,0,0"/>
-            <Button Grid.Column="2"
-                    Command="{Binding RefreshMessagesCommand}" 
-                    Content="Refresh" 
-                    IsEnabled="{Binding !IsLoading}"
-                    Height="30" 
-                    Width="75"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Center"
-                    Margin="0,0,10,0"/>
 
-			<Button Content="Connect"
-                        Command="{Binding ConnectCommand}"
-                        Width="100"
-                        FontSize="16"
-                        Foreground="White"
-                        Background="#6D4DFF"
-                        Padding="5,2"/>
+			<Button Grid.Column="2"
+		   Command="{Binding ConnectCommand}"
+		   Content="Connect"
+		   IsEnabled="{Binding !IsLoading}"
+		   Height="30"
+		   Width="75"
+		   HorizontalAlignment="Right"
+		   VerticalAlignment="Center"
+		   Margin="0,0,10,0"/>
+			
         </Grid>
         <!-- Scrollable chat messages area -->
         <ScrollViewer x:Name="MessagesScrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Auto">

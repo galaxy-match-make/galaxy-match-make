@@ -24,7 +24,6 @@ public partial class MessageRoomViewModel : ViewModelBase
     
     // IDs for the current user and recipient
     private string _recipientId; // Replace with actual user ID
-    private string _recipientName;
     private readonly string _currentUserId = JwtStorage.Instance.authDetails.UserId.ToString();
     private readonly string _currentUserName = JwtStorage.Instance.authDetails.Name;
 
@@ -80,7 +79,7 @@ public partial class MessageRoomViewModel : ViewModelBase
     public async Task Connect()
     {
         _connection = new HubConnectionBuilder()
-            .WithUrl($"https://localhost:7280/messagehub?username={Uri.EscapeDataString(_currentUserName)}")
+            .WithUrl($"http://13.246.221.76:8080/messagehub?username={Uri.EscapeDataString(_currentUserName)}")
             .Build();
 
         _connection.On<string, string>("ReceiveMessage", (user, message) =>
