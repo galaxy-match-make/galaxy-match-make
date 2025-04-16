@@ -65,19 +65,6 @@ public partial class MessageRoomViewModel : ViewModelBase
         LoadInitialMessagesCommand.Execute(null);
     }
     
-    [RelayCommand]
-    private async Task RefreshMessagesAsync()
-    {
-        try
-        {
-            IsLoading = true;
-            await LoadInitialMessagesAsync();
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
 
     private async Task StartPolling()
     {
@@ -98,6 +85,7 @@ public partial class MessageRoomViewModel : ViewModelBase
         }
         catch (TaskCanceledException)
         {
+            // canceled
         }
         catch (Exception ex)
         {
@@ -124,7 +112,6 @@ public partial class MessageRoomViewModel : ViewModelBase
                 
                 if (allMessages != null)
                 {
-                    // Filter for messages newer than our last known message
                     var newMessages = allMessages
                         .Where(m => m.SentDate > _lastMessageTime)
                         .OrderBy(m => m.SentDate)
@@ -132,10 +119,8 @@ public partial class MessageRoomViewModel : ViewModelBase
 
                     if (newMessages.Any())
                     {
-                        // Update last message time
                         _lastMessageTime = newMessages.Max(m => m.SentDate);
                         
-                        // Add new messages to collection
                         foreach (var msg in newMessages)
                         {
                             Messages.Add(new ChatMessage
