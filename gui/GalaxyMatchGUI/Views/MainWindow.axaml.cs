@@ -9,6 +9,5 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
     
-    // Rename to avoid conflict with the auto-generated property
     public ContentControl? GetContentArea => this.FindControl<ContentControl>("ContentArea");
 }

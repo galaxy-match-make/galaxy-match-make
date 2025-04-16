@@ -12,7 +12,6 @@ namespace GalaxyMatchGUI.Models
         public int Id { get; set; }
         public required string PlanetName { get; set; }
         
-        // Navigation property
         public ICollection<Profile> Profiles { get; set; }
     }
 }

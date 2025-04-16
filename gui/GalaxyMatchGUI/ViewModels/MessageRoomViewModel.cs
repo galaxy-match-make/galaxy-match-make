@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.Collections.Generic; // Add this
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
@@ -11,7 +11,7 @@ using System;
 using System.Linq;
 using GalaxyMatchGUI.Models;
 using GalaxyMatchGUI.lib;
-using System.Threading; // Add this line for CancellationTokenSource
+using System.Threading;
 
 namespace GalaxyMatchGUI.ViewModels;
 
@@ -59,7 +59,7 @@ public partial class MessageRoomViewModel : ViewModelBase
         {
             _recipientId = recipient.UserId.ToString();
             RecipientName = recipient.DisplayName;
-            _ = StartPolling(); // Only start polling if we have a recipient
+            _ = StartPolling();
         }
         
         LoadInitialMessagesCommand.Execute(null);
@@ -88,7 +88,6 @@ public partial class MessageRoomViewModel : ViewModelBase
         
         try
         {
-            // Initial delay to let initial messages load
             await Task.Delay(1000, _pollingCts.Token);
             
             while (!_pollingCts.Token.IsCancellationRequested)
@@ -99,7 +98,6 @@ public partial class MessageRoomViewModel : ViewModelBase
         }
         catch (TaskCanceledException)
         {
-            // Polling was cancelled, this is expected
         }
         catch (Exception ex)
         {
@@ -201,10 +199,8 @@ public partial class MessageRoomViewModel : ViewModelBase
 
             if (response.IsSuccessStatusCode)
             {
-                // Don't add to Messages here - let polling handle it
                 CurrentMessage = string.Empty;
                 
-                // Force immediate poll
                 await PollForNewMessages(); 
             }
         }
@@ -245,7 +241,6 @@ public partial class MessageRoomViewModel : ViewModelBase
                         });
                     }
                     
-                    // Set the last message time
                     _lastMessageTime = messages.Max(m => m.SentDate);
                 }
             }
@@ -274,11 +269,9 @@ public partial class MessageRoomViewModel : ViewModelBase
         {
             IsLoading = true;
             
-            // Get the selected category from dropdown (lowercase)
             var category = selectedOption;
             Console.WriteLine($"Fetching rizz line for category: {category}");
             
-            // Get a page of lines in the selected category
             var response = await _httpClient.GetAsync(
                 $"https://rizzapi.vercel.app/category/{category}?page=1&perPage=20");
                 
@@ -289,7 +282,6 @@ public partial class MessageRoomViewModel : ViewModelBase
                 var responseContent = await response.Content.ReadAsStringAsync();
                 Console.WriteLine($"API Response Content: {responseContent}");
                 
-                // Deserialize to List<RizzLine>
                 var lines = await response.Content.ReadFromJsonAsync<List<RizzLine>>();
                 
                 
@@ -297,16 +289,13 @@ public partial class MessageRoomViewModel : ViewModelBase
                 {
                     Console.WriteLine($"Parsed {lines.Count} lines");
                     
-                    // Pick a random line from the results
                     var random = new Random();
                     var randomIndex = random.Next(0, lines.Count);
                     
-                    // Get the text from the random line
                     var rizzLine = lines[randomIndex].text;
                     
                     Console.WriteLine($"Selected line: {rizzLine}");
                     
-                    // Set it as the current message
                     CurrentMessage = rizzLine;
                     Console.WriteLine($"CurrentMessage set to: {CurrentMessage}");
                 }
@@ -325,17 +314,14 @@ public partial class MessageRoomViewModel : ViewModelBase
             IsLoading = false;
         }
     }
-    // Update the RizzLine class to match the actual API response
     private class RizzLine
     {
         public string text { get; set; } = string.Empty;
         public string category { get; set; } = string.Empty;
         public string _id { get; set; } = string.Empty;
-        // Add other properties if needed
     }
 }
 
-// Class representing API message structure
 public class ApiMessage
 {
     public int Id { get; set; }
@@ -345,11 +331,9 @@ public class ApiMessage
     public string RecipientId { get; set; } = string.Empty;
 }
 
-// Keep your ChatMessage class as is
 public class ChatMessage
 {
-    public int Id { get; set; } // Add this property
-    public string Content { get; set; } = string.Empty;
+    public int Id { get; set; }    public string Content { get; set; } = string.Empty;
     public bool IsSentByMe { get; set; }
     public DateTime Timestamp { get; set; }
 }

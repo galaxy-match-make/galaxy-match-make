@@ -21,15 +21,12 @@ namespace GalaxyMatchGUI.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return false; // Not implemented
+            return false;
         }
     }
 
     public static class BoolConverters
     {
-        /// <summary>
-        /// Converts a boolean value to a string, with options for true/false values
-        /// </summary>
         public static readonly IValueConverter ToString = new BoolToStringConverter();
     }
 }

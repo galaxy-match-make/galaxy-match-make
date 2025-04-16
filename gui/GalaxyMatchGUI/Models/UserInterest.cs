@@ -10,7 +10,6 @@ namespace GalaxyMatchGUI.Models
         public int InterestId { get; set; }
         public string InterestName { get; set; } = string.Empty;
         
-        // Navigation properties - ignore these during serialization/deserialization
         [JsonIgnore]
         public User? User { get; set; }
         [JsonIgnore]

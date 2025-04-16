@@ -43,13 +43,11 @@ namespace GalaxyMatchGUI.Services
             
             var view = (Control)Activator.CreateInstance(_viewModelToViewMap[viewModelType])!;
             
-            // If ViewModel instance is provided, use it, otherwise create a new instance
             var vm = viewModel ?? (T)Activator.CreateInstance(viewModelType)!;
             view.DataContext = vm;
             
             var contentControl = _getContentControl();
             
-            // Add current ViewModel to navigation history if there is one
             if (contentControl.Content != null && contentControl.DataContext is ViewModelBase currentViewModel)
             {
                 _navigationHistory.Push(currentViewModel);
