@@ -127,7 +127,6 @@ public partial class MatchingViewModel : ViewModelBase
                 return;
             }
             
-            // Get all profiles 
             _allProfiles = await _profileService.GetAllProfilesAsync();
             
             
@@ -163,7 +162,6 @@ public partial class MatchingViewModel : ViewModelBase
     
     private async Task ShowNextProfile()
     {
-        // Set to loading state
         IsLoading = true;
         StatusMessage = string.Empty;
         
@@ -174,18 +172,15 @@ public partial class MatchingViewModel : ViewModelBase
             return;
         }
         
-        // Check if we've shown all profiles
         if (_currentProfileIndex >= _allProfiles.Count)
         {
             // TODO: Show no more profiles message
             _currentProfileIndex = 0;
         }
         
-        // Get next profile
         var profile = _allProfiles[_currentProfileIndex++];
         CurrentProfile = profile;
         
-        // Load profile 
         await LoadProfileImage(profile.AvatarUrl);
         LoadProfileAttributes(profile);
         
@@ -194,7 +189,6 @@ public partial class MatchingViewModel : ViewModelBase
     
     private void LoadProfileAttributes(Profile profile)
     {
-        // Clear physical attributes
         PhysicalAttributes.Clear();
         
         if (profile.Species != null)
@@ -202,13 +196,11 @@ public partial class MatchingViewModel : ViewModelBase
             PhysicalAttributes.Add(new PhysicalAttribute { Icon = "👽", Description = profile.Species.SpeciesName });
         }
         
-        // Add planet as attribute
         if (profile.Planet != null)
         {
             PhysicalAttributes.Add(new PhysicalAttribute { Icon = "🪐", Description = $"From {profile.Planet.PlanetName}" });
         }
         
-        // Add gender if available
         if (profile.Gender != null)
         {
             string genderIcon = profile.Gender.GenderName switch
@@ -241,7 +233,6 @@ public partial class MatchingViewModel : ViewModelBase
         }
         else
         {
-            // Add a placeholder if no interests
             Interests.Add(new InterestItem { Name = "No listed interests" });
         }
     }
@@ -283,7 +274,7 @@ public partial class MatchingViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error: {ex.Message}";
+            StatusMessage = "Failed to record your reaction";
         }
     }
     
@@ -318,21 +309,10 @@ public partial class MatchingViewModel : ViewModelBase
 
     private void ViewProfile()
     {
-        if (CurrentProfile == null) return;
         
-        // Create a new ProfileViewModel instance
         var profileViewModel = new ProfileViewModel
         {
-            IsEditMode = true,
-            ExistingProfile = CurrentProfile,
-            DisplayName = CurrentProfile.DisplayName,
-            Bio = CurrentProfile.Bio,
-            AvatarUrl = CurrentProfile.AvatarUrl,
-            HeightInGalacticInches = CurrentProfile.HeightInGalacticInches,
-            GalacticDateOfBirth = CurrentProfile.GalacticDateOfBirth,
-            SelectedPlanet = CurrentProfile.Planet,
-            SelectedSpecies = CurrentProfile.Species,
-            SelectedGender = CurrentProfile.Gender
+            IsEditMode = true
         };
         
         NavigationService?.NavigateTo(profileViewModel);
@@ -343,7 +323,6 @@ public partial class MatchingViewModel : ViewModelBase
         NavigationService?.NavigateTo<InteractionsViewModel>();
     }
     
-    // Fallback for demo profile if API fails
     private async Task LoadNextProfile()
     {
         IsLoading = true;
@@ -356,7 +335,6 @@ public partial class MatchingViewModel : ViewModelBase
 
     private async Task LoadProfileWithBase64Image()
     {
-        // Create a profile with base64 image 
         var profile = CreateBasicProfile();
         
         string sampleBase64Image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAABHNCSVQICAgIfAhkiAAAAUdJREFUeJzt1DEBwCAAwDB0voIzhD0EBDkTBTUNmTfHP1nXdR5+besDPM0AMQPEDBBb5w1vt5+orV4HiAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIGaAmAFiBogZIPYBmuwEO61WpfIAAAAASUVORK5CYII=";
@@ -369,7 +347,6 @@ public partial class MatchingViewModel : ViewModelBase
     
     private Profile CreateBasicProfile()
     {
-        // Create a basic profile for demo/fallback purposes
         return new Profile
         {
             UserId = Guid.NewGuid(),
@@ -387,7 +364,6 @@ public partial class MatchingViewModel : ViewModelBase
     {
         if (string.IsNullOrEmpty(avatarUrl))
         {
-            // Use default image
             avatarUrl = "avares://GalaxyMatchGUI/Assets/alien_profile.png";
         }
         
@@ -426,7 +402,7 @@ public partial class MatchingViewModel : ViewModelBase
             }
             catch (Exception fallbackEx)
             {
-                Console.WriteLine($"Error loading fallback image: {fallbackEx.Message}");
+                StatusMessage = "Unable to load image";
             }
         }
     }
@@ -471,8 +447,7 @@ public partial class MatchingViewModel : ViewModelBase
         PhysicalAttributes.Add(new PhysicalAttribute { Icon = "🦑", Description = "7 Tentacles" });
         PhysicalAttributes.Add(new PhysicalAttribute { Icon = "🌈", Description = "Color-shifting" });
         PhysicalAttributes.Add(new PhysicalAttribute { Icon = "🧠", Description = "Telepathic" });
-
-        // Clear and populate interests
+        
         Interests.Clear();
         Interests.Add(new InterestItem { Name = "Space Exploration" });
         Interests.Add(new InterestItem { Name = "Quantum Physics" });
