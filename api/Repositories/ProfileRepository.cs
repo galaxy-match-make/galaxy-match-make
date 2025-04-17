@@ -90,10 +90,7 @@ public class ProfileRepository : IProfileRepository
         var sql = GetUpsertProfileSql(false);
 
         using var connection = _context.CreateConnection();
-        // using var transaction = connection.BeginTransaction();
-
-        // try
-        // {
+        
             var profileId = await connection.ExecuteScalarAsync<int>(sql, new
             {
                 UserId = id,
@@ -123,14 +120,7 @@ public class ProfileRepository : IProfileRepository
                 }
             }
 
-            // transaction.Commit();
             return await GetProfileById(id);
-        // }
-        // catch
-        // {
-        //     transaction.Rollback();
-        //     throw;
-        // }
     }
 
     public async Task<IEnumerable<ProfileDto>> GetPendingMatchesByUserId(Guid id)
