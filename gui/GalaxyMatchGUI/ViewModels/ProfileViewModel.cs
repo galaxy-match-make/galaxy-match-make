@@ -516,7 +516,7 @@ namespace GalaxyMatchGUI.ViewModels
                 else
                 {
                     var error = await response.Content.ReadAsStringAsync();
-                    StatusMessage = $"Error saving profile: {error}";
+                    StatusMessage = "Error saving profile. Please fill in all required fields.";
                 }
             }
             catch (Exception ex)
