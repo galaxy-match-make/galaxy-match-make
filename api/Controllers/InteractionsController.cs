@@ -96,6 +96,22 @@ public class InteractionsController : ControllerBase
             return StatusCode(500, $"Error rejecting request: {ex.Message}");
         }
     }
+
+    
+    [Authorize]
+    [HttpGet("declined")]
+    public async Task<IActionResult> GetRequestsDeclinedByUser()
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
+        {
+            return Unauthorized("User not found");
+        }
+
+        var requests = await _interactionRepository.GetRequestsDeclinedByUser(userId);
+        return Ok(requests);
+    }
     
 }
 
