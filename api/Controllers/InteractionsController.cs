@@ -112,7 +112,21 @@ public class InteractionsController : ControllerBase
         var requests = await _interactionRepository.GetRequestsDeclinedByUser(userId);
         return Ok(requests);
     }
-    
+
+    [Authorize]
+    [HttpGet("rejected")]
+    public async Task<IActionResult> GetRejectedRequests()
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
+        {
+            return Unauthorized("User not found");
+        }
+
+        var requests = await _interactionRepository.GetRejectedRequests(userId);
+        return Ok(requests);
+    }
 }
 
 public class AcceptRequestDto
