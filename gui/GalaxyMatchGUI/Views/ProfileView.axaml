@@ -235,6 +235,7 @@
                                     Height="100" 
                                     TextWrapping="Wrap"
                                     AcceptsReturn="True"
+                                    MaxLength="500"
                                     Margin="0,5,0,0"/>
                         </StackPanel>
                         
