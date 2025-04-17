@@ -10,4 +10,5 @@ public interface IInteractionRepository
     Task ReactToRequest(Guid reactorId, Guid targetId, bool isPositive);
     Task CancelRequest(Guid reactorId, Guid targetId);
     Task<List<ContactDto>> GetRequestsDeclinedByUser(Guid userId);
+    Task<List<ContactDto>> GetRejectedRequests(Guid userId);
 }

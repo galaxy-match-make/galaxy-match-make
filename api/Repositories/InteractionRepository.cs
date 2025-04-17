@@ -139,6 +139,26 @@ public class InteractionRepository : IInteractionRepository
         var results = await connection.QueryAsync<ContactDto>(query, new { UserId = userId });
         return results.ToList();
     }
+
+    public async Task<List<ContactDto>> GetRejectedRequests(Guid userId)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        const string query = @"
+        SELECT 
+            p.user_id,
+            p.display_name,
+            p.avatar_url
+        FROM reactions r1
+        JOIN profiles p ON r1.reactor_id = p.user_id
+        WHERE r1.target_id = @UserId
+          AND r1.is_positive = false
+          ";
+
+        var results = await connection.QueryAsync<ContactDto>(query, new { UserId = userId });
+        return results.ToList();
+    }
 }
 
  
