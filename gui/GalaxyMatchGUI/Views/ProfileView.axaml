@@ -224,7 +224,7 @@
                         <!-- Display Name -->
                         <StackPanel>
                             <TextBlock Text="Display Name:" Foreground="#CCCCFF" FontWeight="SemiBold"/>
-                            <TextBox Text="{Binding DisplayName}" Watermark="Enter your galactic identity" Margin="0,5,0,0"/>
+                            <TextBox Text="{Binding DisplayName}" MaxLength="50" Watermark="Enter your galactic identity" Margin="0,5,0,0"/>
                         </StackPanel>
                         
                         <!-- Bio -->
