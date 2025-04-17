@@ -39,7 +39,6 @@ namespace GalaxyMatchGUI.Views
             
             if (VisualRoot is Window window)
             {
-                // Using PropertyChanged event instead of Reactive Extensions
                 window.PropertyChanged += (s, e) => 
                 {
                     if (e.Property == Window.BoundsProperty)
@@ -48,7 +47,6 @@ namespace GalaxyMatchGUI.Views
                     }
                 };
                 
-                // Set initial width based on current window size
                 UpdateCardWidth(window.Bounds.Width);
             }
         }
