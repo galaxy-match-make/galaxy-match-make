@@ -6,7 +6,6 @@ namespace GalaxyMatchGUI.Models
         public int ProfileId { get; set; }
         public int InterestId { get; set; }
         
-        // Navigation properties
         public required Profile Profile { get; set; }
         public required Interest Interest { get; set; }
     }

@@ -21,14 +21,13 @@ namespace GalaxyMatchGUI.Converters
 
             if (interest != null && selectedInterests != null)
             {
-                // Check if the interest is in the selected collection
                 bool isSelected = selectedInterests.Any(i => i.Id == interest.Id);
                 return isSelected 
-                    ? new SolidColorBrush(Color.Parse("#FF00FF")) // Selected color
-                    : new SolidColorBrush(Color.Parse("#4C1D95")); // Default color
+                    ? new SolidColorBrush(Color.Parse("#FF00FF"))
+                    : new SolidColorBrush(Color.Parse("#4C1D95"));
             }
 
-            return new SolidColorBrush(Color.Parse("#4C1D95")); // Default background
+            return new SolidColorBrush(Color.Parse("#4C1D95"));
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

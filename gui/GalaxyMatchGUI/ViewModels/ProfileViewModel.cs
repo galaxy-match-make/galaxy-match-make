@@ -87,11 +87,9 @@ namespace GalaxyMatchGUI.ViewModels
 
         [ObservableProperty]
         private Bitmap avatarImage;
-
-        // Parameterless constructor for use by the navigation system
+        
         public ProfileViewModel()
         {
-            // Get navigation service from the app's service provider
             _navigationService = App.ServiceProvider?.GetService(typeof(INavigationService)) as INavigationService;
             LoadData();
 
@@ -102,7 +100,6 @@ namespace GalaxyMatchGUI.ViewModels
         {
             try
             {
-                // Get the current window directly from the application lifetime
                 var window = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
                 if (window == null)
                 {
@@ -110,7 +107,6 @@ namespace GalaxyMatchGUI.ViewModels
                     return;
                 }
                 
-                // Create file picker options
                 var filters = new List<FileDialogFilter>
                 {
                     new FileDialogFilter
@@ -120,7 +116,6 @@ namespace GalaxyMatchGUI.ViewModels
                     }
                 };
                 
-                // Open file dialog
                 var dialog = new OpenFileDialog
                 {
                     Title = "Select Profile Image",
@@ -137,7 +132,6 @@ namespace GalaxyMatchGUI.ViewModels
                 
                 var filePath = result[0];
                 
-                // Check file size
                 var fileInfo = new FileInfo(filePath);
                 if (fileInfo.Length > 1024 * 1024 * 2) // 2MB max
                 {
@@ -145,15 +139,12 @@ namespace GalaxyMatchGUI.ViewModels
                     return;
                 }
                 
-                // Read the file as bytes
                 byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
                 
-                // Convert to base64
                 string base64Image = Convert.ToBase64String(fileBytes);
                 
-                // Determine file extension
                 string fileName = Path.GetFileName(filePath).ToLower();
-                string mimeType = "image/jpeg"; // Default
+                string mimeType = "image/jpeg";
                 
                 if (fileName.EndsWith(".png"))
                     mimeType = "image/png";
@@ -162,15 +153,42 @@ namespace GalaxyMatchGUI.ViewModels
                 else if (fileName.EndsWith(".bmp"))
                     mimeType = "image/bmp";
                 
-                // Create the data URL format
                 AvatarUrl = $"data:{mimeType};base64,{base64Image}";
+
+                await LoadAvatarImageAsync();
                 
                 UploadStatusMessage = "Image uploaded successfully";
+                
             }
             catch (Exception ex)
             {
-                UploadStatusMessage = $"Error uploading image: {ex.Message}";
-                Console.WriteLine($"Image upload error: {ex}");
+                UploadStatusMessage = "Error uploading image";
+            }
+        }
+
+        private async Task LoadAvatarImageAsync()
+        {
+            if (string.IsNullOrEmpty(AvatarUrl))
+            {
+                AvatarImage = new Bitmap("avares://GalaxyMatchGUI/Assets/alien_profile.png");
+                return;
+            }
+
+            try
+            {
+                int commaIndex = AvatarUrl.IndexOf(',');
+                if (commaIndex > 0)
+                {
+                    string data = AvatarUrl.Substring(commaIndex + 1);
+                    byte[] bytes = Convert.FromBase64String(data);
+                    
+                    using var stream = new MemoryStream(bytes);
+                    AvatarImage = new Bitmap(stream);
+                }
+            }
+            catch (Exception ex)
+            {
+                AvatarImage = new Bitmap("avares://GalaxyMatchGUI/Assets/alien_profile.png");
             }
         }
 
@@ -184,13 +202,11 @@ namespace GalaxyMatchGUI.ViewModels
         {
             if (string.IsNullOrEmpty(avatarUrl))
             {
-                // Use default image
                 avatarUrl = "avares://GalaxyMatchGUI/Assets/alien_profile.png";
             }
             
             try
             {
-                // Check if it's a base64 image
                 if (avatarUrl.StartsWith("data:image") && avatarUrl.Contains("base64,"))
                 {
                     await LoadBase64Image(avatarUrl);
@@ -203,13 +219,11 @@ namespace GalaxyMatchGUI.ViewModels
                                 
                 if (hasValidUrl)
                 {
-                    // Load from remote URL
                     var image = await AsyncImageLoader.LoadAsync(avatarUrl);
                     AvatarImage = (Bitmap)image;
                 }
                 else
                 {
-                    // Load from local asset
                     var uri = new Uri(avatarUrl);
                     using var stream = AssetLoader.Open(uri);
                     AvatarImage = new Bitmap(stream);
@@ -217,18 +231,16 @@ namespace GalaxyMatchGUI.ViewModels
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading profile image: {ex.Message}");
                 
                 try
                 {
-                    // If URL loading fails, try fall back to local asset
                     var uri = new Uri("avares://GalaxyMatchGUI/Assets/alien_profile.png");
                     using var stream = AssetLoader.Open(uri);
                     AvatarImage = new Bitmap(stream);
                 }
                 catch (Exception fallbackEx)
                 {
-                    Console.WriteLine($"Error loading fallback image: {fallbackEx.Message}");
+                    StatusMessage = "Unable to load avatar image";
                 }
             }
         }
@@ -240,14 +252,12 @@ namespace GalaxyMatchGUI.ViewModels
 
             try
             {
-                // Set up HTTP client with JWT
                 var jwtToken = JwtStorage.Instance.authDetails?.JwtToken;
                 if (!string.IsNullOrEmpty(jwtToken))
                 {
                     _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
                 }
-
-                // Load planets, species, genders, and interests
+                
                 await Task.WhenAll(
                     LoadPlanets(),
                     LoadSpecies(),
@@ -272,7 +282,6 @@ namespace GalaxyMatchGUI.ViewModels
         {
             try
             {
-                // Extract the base64 part after the comma
                 int commaIndex = base64String.IndexOf(',');
                 if (commaIndex > 0)
                 {
@@ -285,9 +294,7 @@ namespace GalaxyMatchGUI.ViewModels
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading base64 image: {ex.Message}");
                 
-                // Load fallback image on error
                 try
                 {
                     var uri = new Uri("avares://GalaxyMatchGUI/Assets/alien_profile.png");
@@ -296,7 +303,7 @@ namespace GalaxyMatchGUI.ViewModels
                 }
                 catch (Exception fallbackEx)
                 {
-                    Console.WriteLine($"Error loading fallback image: {fallbackEx.Message}");
+                    StatusMessage = "Unable to load avatar image";
                 }
             }
         }
@@ -318,7 +325,6 @@ namespace GalaxyMatchGUI.ViewModels
                         ExistingProfile = profile;
                         IsEditMode = true;
                         
-                        // Populate form with existing data
                         DisplayName = profile.DisplayName;
                         Bio = profile.Bio ?? string.Empty;
                         AvatarUrl = profile.AvatarUrl ?? string.Empty;
@@ -326,7 +332,6 @@ namespace GalaxyMatchGUI.ViewModels
                         HeightInGalacticInches = profile.HeightInGalacticInches;
                         GalacticDateOfBirth = profile.GalacticDateOfBirth;
                         
-                        // Set selected values
                         if (profile.Planet != null && Planets.Any())
                             SelectedPlanet = Planets.FirstOrDefault(p => p.Id == profile.PlanetId);
                         
@@ -336,7 +341,6 @@ namespace GalaxyMatchGUI.ViewModels
                         if (profile.Gender != null && Genders.Any())
                             SelectedGender = Genders.FirstOrDefault(g => g.Id == profile.GenderId);
                         
-                        // Set selected interests
                         if (profile.UserInterests != null && profile.UserInterests.Any() && AllInterests.Any())
                         {
                             SelectedInterests.Clear();
@@ -352,8 +356,7 @@ namespace GalaxyMatchGUI.ViewModels
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading profile: {ex.Message}");
-                // No profile exists yet, that's okay for new users
+                StatusMessage = "Unable to load profile";
             }
         }
 
@@ -375,7 +378,7 @@ namespace GalaxyMatchGUI.ViewModels
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading planets: {ex.Message}");
+                StatusMessage = "Unable to load planets";
             }
         }
 
@@ -397,7 +400,7 @@ namespace GalaxyMatchGUI.ViewModels
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading species: {ex.Message}");
+                StatusMessage = "Unable to load species";
             }
         }
 
@@ -419,7 +422,7 @@ namespace GalaxyMatchGUI.ViewModels
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading genders: {ex.Message}");
+                StatusMessage = "Unable to load genders";
             }
         }
 
@@ -439,11 +442,10 @@ namespace GalaxyMatchGUI.ViewModels
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading interests: {ex.Message}");
+                StatusMessage = "Unable to load interests";
             }
         }
-
-        // Fix: Make sure the method signature matches what's expected
+        
         [RelayCommand]
         public void ToggleInterest(Interest interest)
         {
@@ -455,8 +457,6 @@ namespace GalaxyMatchGUI.ViewModels
             {
                 SelectedInterests.Add(interest);
             }
-            
-            // Force UI update (might help in some cases)
             OnPropertyChanged(nameof(SelectedInterests));
         }
 
@@ -483,8 +483,7 @@ namespace GalaxyMatchGUI.ViewModels
                 }
 
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
-
-                // Create profile object
+                
                 var profileData = new
                 {
                     DisplayName = DisplayName,
@@ -502,30 +501,27 @@ namespace GalaxyMatchGUI.ViewModels
                 
                 if (IsEditMode)
                 {
-                    // Update existing profile
                     response = await _httpClient.PutAsJsonAsync($"{ApiBaseUrl}/api/Profile", profileData);
                 }
                 else
                 {
-                    // Create new profile
                     response = await _httpClient.PostAsJsonAsync($"{ApiBaseUrl}/api/Profile", profileData);
                 }
 
                 if (response.IsSuccessStatusCode)
                 {
                     StatusMessage = "Profile saved successfully!";
-                    // Navigate to the matching view after successful save
                     _navigationService?.NavigateTo<MatchingViewModel>();
                 }
                 else
                 {
                     var error = await response.Content.ReadAsStringAsync();
-                    StatusMessage = $"Error saving profile: {error}";
+                    StatusMessage = "Error saving profile. Please fill in all required fields.";
                 }
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Error saving profile: {ex.Message}";
+                StatusMessage = "Error saving profile";
             }
             finally
             {
@@ -536,8 +532,9 @@ namespace GalaxyMatchGUI.ViewModels
         [RelayCommand]
         public void Cancel()
         {
-            // Navigate back to login/previous view
-            _navigationService?.NavigateBack();
+            NavigationService?.NavigateTo<MatchingViewModel>();
         }
+        
+        
     }
 }

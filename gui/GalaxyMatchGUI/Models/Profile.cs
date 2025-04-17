@@ -21,7 +21,6 @@ namespace GalaxyMatchGUI.Models
         public float? HeightInGalacticInches { get; set; }
         public int? GalacticDateOfBirth { get; set; }
         
-        // Navigation properties
         public User? User { get; set; }
         public Species? Species { get; set; }
         public Planet? Planet { get; set; }

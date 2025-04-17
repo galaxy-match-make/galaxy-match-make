@@ -12,6 +12,5 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel()
     {
-        // Initialize properties or load data here
     }
 }

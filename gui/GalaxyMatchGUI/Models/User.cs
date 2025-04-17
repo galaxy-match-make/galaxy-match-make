@@ -7,8 +7,6 @@ namespace GalaxyMatchGUI.Models
     {
         public User()
         {
-            // SentReactions = new HashSet<Contact>();
-            // ReceivedReactions = new HashSet<Contact>();
             SentMessages = new HashSet<Message>();
             ReceivedMessages = new HashSet<Message>();
             UserInterests = new HashSet<UserInterest>();

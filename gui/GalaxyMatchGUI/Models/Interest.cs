@@ -12,7 +12,6 @@ namespace GalaxyMatchGUI.Models
         public int Id { get; set; }
         public required string InterestName { get; set; }
         
-        // Navigation property
         public ICollection<ProfileInterest> ProfileInterests { get; set; }
     }
 }

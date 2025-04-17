@@ -34,7 +34,6 @@ public partial class Contact : ObservableObject
         {
             if (SetProperty(ref _avatarUrl, value))
             {
-                // Load the image when the URL is set
                 _ = LoadAvatarImageAsync();
             }
         }
@@ -56,7 +55,6 @@ public partial class Contact : ObservableObject
 
         try
         {
-            // Extract the base64 part after the comma
             int commaIndex = AvatarUrl.IndexOf(',');
             if (commaIndex > 0)
             {
@@ -93,24 +91,33 @@ public partial class Contact : ObservableObject
         }
     }
 
-    public async Task AcceptRequest()
+    [RelayCommand]
+    public void AcceptRequest()
     {
-        await _interactionsViewModel?.AcceptRequestAsync(this);
-    }
-    
-    public async Task RejectRequest()
-    {
-        await _interactionsViewModel?.RejectRequestAsync(this);
-    }
-    
-    public async Task CancelRequest()
-    {
-        await _interactionsViewModel?.CancelRequestAsync(this);
+        _interactionsViewModel?.AcceptRequestAsync(this);
     }
     
     [RelayCommand]
-    private void ReactionClicked()
+    public void RejectRequest()
     {
-        _interactionsViewModel?.HandleReactionClick(this);
+        _interactionsViewModel?.RejectRequestAsync(this);
+    }
+    
+    [RelayCommand]
+    public void CancelRequest()
+    {
+        _interactionsViewModel?.CancelRequestAsync(this);
+    }
+    
+    [RelayCommand]
+    private void ShowMessages()
+    {
+        _interactionsViewModel?.ShowMessages(this);
+    }
+    
+    [RelayCommand]
+    private void ShowProfile()
+    {
+        _interactionsViewModel?.ShowProfile(this);
     }
 }

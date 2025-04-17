@@ -29,7 +29,6 @@ namespace GalaxyMatchGUI.Services
         {
             try
             {
-                // Get the JWT token from storage
                 var jwtToken = JwtStorage.Instance.authDetails?.JwtToken;
                 
                 if (string.IsNullOrEmpty(jwtToken))

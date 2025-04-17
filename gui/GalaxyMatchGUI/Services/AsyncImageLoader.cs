@@ -20,22 +20,18 @@ namespace GalaxyMatchGUI.Services
 
             try
             {
-                // Local resource using avares:// protocol
                 if (source.StartsWith("avares://"))
                 {
                     var uri = new Uri(source);
-                    // Use static AssetLoader instead of AvaloniaLocator
                     using var stream = AssetLoader.Open(uri);
                     return new Bitmap(stream);
                 }
-                // Remote URL (http:// or https://)
                 else if (source.StartsWith("http://") || source.StartsWith("https://"))
                 {
                     var bytes = await _httpClient.GetByteArrayAsync(source);
                     using var ms = new MemoryStream(bytes);
                     return new Bitmap(ms);
                 }
-                // Base64 encoded image
                 else if (source.StartsWith("data:image"))
                 {
                     var base64Data = source.Substring(source.IndexOf(',') + 1);

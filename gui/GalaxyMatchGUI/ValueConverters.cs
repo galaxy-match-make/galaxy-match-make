@@ -12,9 +12,9 @@ namespace GalaxyMatchGUI
     {
         private static readonly Dictionary<int, string> AttributeIcons = new Dictionary<int, string>
         {
-            { 1, "🧠" }, // Telepathic
-            { 2, "💕" }, // 3 Hearts
-            { 3, "📏" }  // Height
+            { 1, "🧠" },
+            { 2, "💕" },
+            { 3, "📏" } 
         };
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -23,8 +23,8 @@ namespace GalaxyMatchGUI
             {
                 return icon;
             }
-            return "❓"; // Default icon for unknown attributes
-        }
+            return "❓";
+        } 
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -47,7 +47,7 @@ namespace GalaxyMatchGUI
             {
                 return name;
             }
-            return "Unknown"; // Default name for unknown attributes
+            return "Unknown";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
